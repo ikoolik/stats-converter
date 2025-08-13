@@ -1,0 +1,114 @@
+#!/usr/bin/env node
+
+const TrainingProcessor = require('./processors/training.js');
+const HealthProcessor = require('./processors/health.js');
+
+/**
+ * Main processing function that orchestrates all data processing
+ */
+async function processAllData() {
+    console.log('=== Starting Data Processing ===\n');
+    
+    try {
+        // Process training data
+        console.log('1. Processing Training Data...');
+        const trainingProcessor = new TrainingProcessor();
+        const trainingResults = trainingProcessor.process();
+        console.log(`   ✓ Training data processed for ${Object.keys(trainingResults).length} weeks\n`);
+        
+        // Process health data
+        console.log('2. Processing Health Data...');
+        const healthProcessor = new HealthProcessor();
+        const healthResults = healthProcessor.process();
+        console.log(`   ✓ Health data processed for ${Object.keys(healthResults).length} weeks\n`);
+        
+        console.log('=== Data Processing Completed Successfully ===');
+        console.log(`Generated files in: ${require('path').join(__dirname, 'results')}`);
+        
+        return {
+            training: trainingResults,
+            health: healthResults
+        };
+        
+    } catch (error) {
+        console.error('Error during data processing:', error.message);
+        process.exit(1);
+    }
+}
+
+/**
+ * Process only training data
+ */
+async function processTrainingOnly() {
+    console.log('=== Processing Training Data Only ===\n');
+    
+    try {
+        const trainingProcessor = new TrainingProcessor();
+        const trainingResults = trainingProcessor.process();
+        
+        console.log('=== Training Processing Completed ===');
+        console.log(`Generated files in: ${require('path').join(__dirname, 'results')}`);
+        
+        return trainingResults;
+        
+    } catch (error) {
+        console.error('Error processing training data:', error.message);
+        process.exit(1);
+    }
+}
+
+/**
+ * Process only health data
+ */
+async function processHealthOnly() {
+    console.log('=== Processing Health Data Only ===\n');
+    
+    try {
+        const healthProcessor = new HealthProcessor();
+        const healthResults = healthProcessor.process();
+        
+        console.log('=== Health Processing Completed ===');
+        console.log(`Generated files in: ${require('path').join(__dirname, 'results')}`);
+        
+        return healthResults;
+        
+    } catch (error) {
+        console.error('Error processing health data:', error.message);
+        process.exit(1);
+    }
+}
+
+/**
+ * Main function that handles command line arguments
+ */
+function main() {
+    const args = process.argv.slice(2);
+    const command = args[0] || 'all';
+    
+    switch (command.toLowerCase()) {
+        case 'training':
+        case 'train':
+            processTrainingOnly();
+            break;
+            
+        case 'health':
+            processHealthOnly();
+            break;
+            
+        case 'all':
+        default:
+            processAllData();
+            break;
+    }
+}
+
+// Run the main function if this file is executed directly
+if (require.main === module) {
+    main();
+}
+
+module.exports = {
+    processAllData,
+    processTrainingOnly,
+    processHealthOnly
+};
