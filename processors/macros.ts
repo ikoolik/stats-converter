@@ -44,21 +44,26 @@ export class MacrosProcessor extends BaseProcessor {
                 
                 if (fields.length >= 5) {
                     const dateTime = fields[0];
-                    const fat = parseFloat(fields[2]) || 0;
-                    const carbs = parseFloat(fields[3]) || 0;
-                    const protein = parseFloat(fields[4]) || 0;
+                    const fatKcal = parseFloat(fields[2]) || 0;
+                    const carbsKcal = parseFloat(fields[3]) || 0;
+                    const proteinKcal = parseFloat(fields[4]) || 0;
                     
-                    // Calculate total calories (4 kcal/g for protein and carbs, 9 kcal/g for fat)
-                    const totalKcal = (protein * 4) + (carbs * 4) + (fat * 9);
+                    // Sum total calories
+                    const totalKcal = fatKcal + carbsKcal + proteinKcal;
+                    
+                    // Convert calories to grams (4 kcal/g for protein and carbs, 9 kcal/g for fat)
+                    const fatGrams = fatKcal / 9;
+                    const carbsGrams = carbsKcal / 4;
+                    const proteinGrams = proteinKcal / 4;
                     
                     const date = this.extractDate(dateTime);
                     
                     data.push({
                         date: date,
                         metrics: {
-                            fat: this.roundToTwoDecimals(fat),
-                            carbs: this.roundToTwoDecimals(carbs),
-                            protein: this.roundToTwoDecimals(protein),
+                            fat: this.roundToTwoDecimals(fatGrams),
+                            carbs: this.roundToTwoDecimals(carbsGrams),
+                            protein: this.roundToTwoDecimals(proteinGrams),
                             totalKcal: this.roundToTwoDecimals(totalKcal)
                         }
                     });
