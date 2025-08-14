@@ -4,6 +4,10 @@ sources/*
 results/*
 !results/.gitkeep
 
+# Compiled output (ignore contents but keep folder structure)
+dist/*
+!dist/.gitkeep
+
 # OS generated files
 .DS_Store
 .DS_Store?

@@ -1,0 +1,19 @@
+{
+  "name": "stats-converter",
+  "version": "1.0.0",
+  "description": "A Node.js application that processes health and fitness data exports from mobile apps into organized weekly JSON files",
+  "main": "dist/process.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/process.js",
+    "dev": "ts-node process.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0"
+  },
+  "keywords": ["health", "fitness", "data-processing", "typescript"],
+  "author": "",
+  "license": "MIT"
+}

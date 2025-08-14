@@ -1,126 +1,113 @@
-const fs = require('fs');
-const path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
+import { BaseProcessor } from './base';
+import { DailyMetrics, WeeklyMetrics } from '../types';
 
 // Constants
 const SLEEP_SESSION_GAP_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutes in milliseconds
 
-class HealthProcessor {
+interface HealthRecord {
+    date: string;
+    type: string;
+    value: number | string;
+    duration?: number;
+    startDate?: string;
+    endDate?: string;
+    unit?: string;
+}
+
+interface SleepMetrics {
+    Core: string;
+    Deep: string;
+    REM: string;
+    Total: string;
+    wakeUps: number;
+}
+
+
+export class HealthProcessor extends BaseProcessor {
     constructor() {
-        this.sourcesDir = path.join(__dirname, '..', 'sources');
-        this.resultsDir = path.join(__dirname, '..', 'results');
+        super();
     }
 
     /**
      * Find all CSV health data files in the sources directory
      * Only processes files that start with "HK"
-     * @returns {Array} Array of CSV file paths
+     * @returns Array of CSV file paths
      */
-    findHealthDataFiles() {
-        try {
-            const files = fs.readdirSync(this.sourcesDir);
-            const csvFiles = files.filter(file => file.endsWith('.csv') && file.startsWith('HK'));
-            
-            if (csvFiles.length === 0) {
-                throw new Error(`No CSV health data files starting with 'HK' found in ${this.sourcesDir}`);
-            }
-            
-            return csvFiles.map(file => path.join(this.sourcesDir, file));
-        } catch (error) {
-            throw new Error(`Failed to find health data files: ${error.message}`);
-        }
-    }
-
-    /**
-     * Extract date from timestamp (ignoring time)
-     * @param {string} timestamp - The timestamp string
-     * @returns {string} The date in YYYY-MM-DD format
-     */
-    extractDate(timestamp) {
-        const date = new Date(timestamp);
-        if (isNaN(date.getTime())) {
-            throw new Error(`Invalid date format: ${timestamp}`);
-        }
-        return date.toISOString().split('T')[0];
-    }
-
-    /**
-     * Round values to two decimal places
-     * @param {number} value - The value to round
-     * @returns {number} The rounded value
-     */
-    roundToTwoDecimals(value) {
-        return Math.round(value * 100) / 100;
+    private findHealthDataFiles(): string[] {
+        return this.findFilesByExtension('.csv', 'HK');
     }
 
     /**
      * Calculate height from BMI and body mass
-     * @param {number} bodyMass - Body mass in kg
-     * @param {number} bmi - Body mass index
-     * @returns {number} Height in meters
+     * @param bodyMass - Body mass in kg
+     * @param bmi - Body mass index
+     * @returns Height in meters
      */
-    calculateHeight(bodyMass, bmi) {
+    private calculateHeight(bodyMass: number, bmi: number): number {
         return Math.sqrt(bodyMass / bmi);
     }
 
     /**
      * Calculate FFMI (Fat-Free Mass Index)
-     * @param {number} leanBodyMass - Lean body mass in kg
-     * @param {number} height - Height in meters
-     * @returns {number} FFMI value
+     * @param leanBodyMass - Lean body mass in kg
+     * @param height - Height in meters
+     * @returns FFMI value
      */
-    calculateFFMI(leanBodyMass, height) {
+    private calculateFFMI(leanBodyMass: number, height: number): number {
         return leanBodyMass / (height * height);
     }
 
     /**
      * Calculate BCI (Body Composition Index)
-     * @param {number} ffmi - FFMI value
-     * @param {number} bodyFatPercentage - Body fat percentage (0-1)
-     * @returns {number} BCI value
+     * @param ffmi - FFMI value
+     * @param bodyFatPercentage - Body fat percentage (0-1)
+     * @returns BCI value
      */
-    calculateBCI(ffmi, bodyFatPercentage) {
+    private calculateBCI(ffmi: number, bodyFatPercentage: number): number {
         return ffmi * (1 - bodyFatPercentage);
     }
 
     /**
      * Calculate average heart rate for a day
-     * @param {Array} heartRateData - Array of heart rate records
-     * @returns {number|null} Average heart rate or null if no data
+     * @param heartRateData - Array of heart rate records
+     * @returns Average heart rate or null if no data
      */
-    calculateAverageHeartRate(heartRateData) {
+    private calculateAverageHeartRate(heartRateData: HealthRecord[]): number | null {
         if (!heartRateData || heartRateData.length === 0) {
             return null;
         }
         
-        const sum = heartRateData.reduce((acc, record) => acc + record.value, 0);
+        const sum = heartRateData.reduce((acc, record) => acc + (record.value as number), 0);
         return this.roundToTwoDecimals(sum / heartRateData.length);
     }
 
     /**
      * Calculate total steps for a day
-     * @param {Array} stepData - Array of step records
-     * @returns {number|null} Total steps or null if no data
+     * @param stepData - Array of step records
+     * @returns Total steps or null if no data
      */
-    calculateTotalSteps(stepData) {
+    private calculateTotalSteps(stepData: HealthRecord[]): number | null {
         if (!stepData || stepData.length === 0) {
             return null;
         }
         
-        const total = stepData.reduce((acc, record) => acc + record.value, 0);
+        const total = stepData.reduce((acc, record) => acc + (record.value as number), 0);
         return Math.round(total);
     }
 
     /**
      * Calculate sleep metrics for a day
-     * @param {Array} sleepData - Array of sleep records
-     * @returns {Object|null} Sleep metrics or null if no data
+     * @param sleepData - Array of sleep records
+     * @returns Sleep metrics or null if no data
      */
-    calculateSleepMetrics(sleepData) {
+    private calculateSleepMetrics(sleepData: HealthRecord[]): SleepMetrics | null {
         if (!sleepData || sleepData.length === 0) {
             return null;
         }
         
-        const sleepMetrics = {
+        const sleepMetrics: Record<string, number> = {
             inBed: 0,
             asleepCore: 0,
             asleepDeep: 0,
@@ -129,11 +116,11 @@ class HealthProcessor {
             wakeUps: 0
         };
         
-        let previousState = null;
+        let previousState: string | null = null;
         
         for (const record of sleepData) {
-            const duration = record.duration;
-            const state = record.value;
+            const duration = record.duration || 0;
+            const state = record.value as string;
             
             if (sleepMetrics.hasOwnProperty(state)) {
                 sleepMetrics[state] += duration;
@@ -162,10 +149,10 @@ class HealthProcessor {
 
     /**
      * Format minutes into "##h ##m" format
-     * @param {number} minutes - Minutes to format
-     * @returns {string} Formatted time string
+     * @param minutes - Minutes to format
+     * @returns Formatted time string
      */
-    formatTimeFromMinutes(minutes) {
+    private formatTimeFromMinutes(minutes: number): string {
         const hours = Math.floor(minutes / 60);
         const mins = minutes % 60;
         return `${hours}h ${mins.toString().padStart(2, '0')}m`;
@@ -173,37 +160,37 @@ class HealthProcessor {
 
     /**
      * Calculate duration between two timestamps in minutes
-     * @param {string} startDate - Start timestamp
-     * @param {string} endDate - End timestamp
-     * @returns {number} Duration in minutes
+     * @param startDate - Start timestamp
+     * @param endDate - End timestamp
+     * @returns Duration in minutes
      */
-    calculateDurationMinutes(startDate, endDate) {
+    private calculateDurationMinutes(startDate: string, endDate: string): number {
         const start = new Date(startDate);
         const end = new Date(endDate);
-        return Math.round((end - start) / (1000 * 60));
+        return Math.round((end.getTime() - start.getTime()) / (1000 * 60));
     }
 
     /**
      * Group sleep data by sleep session (handles cross-midnight sessions)
-     * @param {Array} sleepData - Array of sleep records
-     * @returns {Object} Sleep sessions grouped by date
+     * @param sleepData - Array of sleep records
+     * @returns Sleep sessions grouped by date
      */
-    groupSleepDataBySession(sleepData) {
+    private groupSleepDataBySession(sleepData: HealthRecord[]): Record<string, HealthRecord[]> {
         if (!sleepData || sleepData.length === 0) {
             return {};
         }
         
-        const sortedData = sleepData.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+        const sortedData = sleepData.sort((a, b) => new Date(a.startDate || '').getTime() - new Date(b.startDate || '').getTime());
         
-        const sessions = {};
-        let sessionData = [];
+        const sessions: Record<string, HealthRecord[]> = {};
+        let sessionData: HealthRecord[] = [];
         
         for (const record of sortedData) {
-            const startTime = new Date(record.startDate);
+            const startTime = new Date(record.startDate || '');
             
-            if (sessionData.length === 0 || (startTime - new Date(sessionData[sessionData.length - 1].endDate)) > SLEEP_SESSION_GAP_THRESHOLD_MS) {
+            if (sessionData.length === 0 || (startTime.getTime() - new Date(sessionData[sessionData.length - 1].endDate || '').getTime()) > SLEEP_SESSION_GAP_THRESHOLD_MS) {
                 if (sessionData.length > 0) {
-                    const sessionKey = this.extractDate(sessionData[0].startDate);
+                    const sessionKey = this.extractDate(sessionData[0].startDate || '');
                     sessions[sessionKey] = sessionData;
                 }
                 sessionData = [record];
@@ -213,7 +200,7 @@ class HealthProcessor {
         }
         
         if (sessionData.length > 0) {
-            const sessionKey = this.extractDate(sessionData[0].startDate);
+            const sessionKey = this.extractDate(sessionData[0].startDate || '');
             sessions[sessionKey] = sessionData;
         }
         
@@ -222,36 +209,20 @@ class HealthProcessor {
 
     /**
      * Read and parse CSV file from "Health Export CSV" app
-     * @param {string} filePath - Path to the CSV file
-     * @returns {Array} Parsed data records
+     * @param filePath - Path to the CSV file
+     * @returns Parsed data records
      */
-    parseHKCSV(filePath) {
-        const content = fs.readFileSync(filePath, 'utf8');
+    private parseHKCSV(filePath: string): HealthRecord[] {
+        const content = this.loadTextFile(filePath);
         const lines = content.split('\n');
         
         const dataLines = lines.slice(2); // Skip sep=, and header
-        const data = [];
+        const data: HealthRecord[] = [];
         
         for (const line of dataLines) {
             if (line.trim() === '') continue;
             
-            const fields = [];
-            let currentField = '';
-            let inQuotes = false;
-            
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-                
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    fields.push(currentField.trim());
-                    currentField = '';
-                } else {
-                    currentField += char;
-                }
-            }
-            fields.push(currentField.trim());
+            const fields = this.parseCSVLine(line);
             
             if (fields.length >= 8) {
                 const type = fields[0];
@@ -299,12 +270,12 @@ class HealthProcessor {
 
     /**
      * Load and parse all health data files
-     * @returns {Array} All parsed health data records
+     * @returns All parsed health data records
      */
-    loadHealthData() {
+    private loadHealthData(): HealthRecord[] {
         try {
             const csvFiles = this.findHealthDataFiles();
-            const allData = [];
+            const allData: HealthRecord[] = [];
             
             for (const filePath of csvFiles) {
                 const fileName = path.basename(filePath);
@@ -314,26 +285,26 @@ class HealthProcessor {
                     const fileData = this.parseHKCSV(filePath);
                     allData.push(...fileData);
                 } catch (error) {
-                    console.error(`Error reading file ${fileName}:`, error.message);
+                    console.error(`Error reading file ${fileName}:`, error instanceof Error ? error.message : String(error));
                 }
             }
             
             return allData;
         } catch (error) {
-            throw new Error(`Failed to load health data: ${error.message}`);
+            throw new Error(`Failed to load health data: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 
     /**
      * Combine health data by date
-     * @param {Array} data - Array of health data records
-     * @returns {Object} Combined data organized by date
+     * @param data - Array of health data records
+     * @returns Combined data as array of daily metrics
      */
-    combineByDate(data) {
-        const combined = {};
+    private createDailyMetrics(data: HealthRecord[]): DailyMetrics[] {
+        const combined: Record<string, DailyMetrics> = {};
         
         // Group data by date and type for processing
-        const groupedByDate = {};
+        const groupedByDate: Record<string, Record<string, HealthRecord[]>> = {};
         
         for (const record of data) {
             const date = record.date;
@@ -353,7 +324,7 @@ class HealthProcessor {
         // Process each date
         for (const date in groupedByDate) {
             const dateData = groupedByDate[date];
-            combined[date] = {};
+            const metrics: Record<string, number | SleepMetrics> = {};
             
             // Process body composition data (single measurements)
             for (const type in dateData) {
@@ -366,10 +337,7 @@ class HealthProcessor {
                     
                     if (records.length > 0) {
                         const measurementType = type.replace('HKQuantityTypeIdentifier', '');
-                        combined[date][measurementType] = {
-                            value: records[0].value,
-                            unit: records[0].unit
-                        };
+                        metrics[measurementType] = records[0].value as number;
                     }
                 }
             }
@@ -380,10 +348,7 @@ class HealthProcessor {
                 const avgHeartRate = this.calculateAverageHeartRate(heartRateData);
                 
                 if (avgHeartRate !== null) {
-                    combined[date]['HeartRate'] = {
-                        value: avgHeartRate,
-                        unit: 'count/min'
-                    };
+                    metrics['HeartRate'] = avgHeartRate;
                 }
             }
             
@@ -393,12 +358,14 @@ class HealthProcessor {
                 const totalSteps = this.calculateTotalSteps(stepData);
                 
                 if (totalSteps !== null) {
-                    combined[date]['StepCount'] = {
-                        value: totalSteps,
-                        unit: 'count'
-                    };
+                    metrics['StepCount'] = totalSteps;
                 }
             }
+            
+            combined[date] = {
+                date: date,
+                metrics: metrics
+            };
         }
         
         // Process sleep data separately to handle cross-midnight sessions
@@ -412,136 +379,69 @@ class HealthProcessor {
 
                 if (sleepMetrics !== null) {
                     if (!combined[sessionDate]) {
-                        combined[sessionDate] = {};
+                        combined[sessionDate] = {
+                            date: sessionDate,
+                            metrics: {}
+                        };
                     }
                     
-                    combined[sessionDate]['Sleep'] = sleepMetrics;
+                    combined[sessionDate].metrics!['Sleep'] = sleepMetrics;
                 }
             }
         }
         
         // Calculate FFMI and BCI for each date
         for (const date in combined) {
-            const measurements = combined[date];
+            const dailyMetrics = combined[date];
+            const measurements = dailyMetrics.metrics as Record<string, number | SleepMetrics>;
             
             if (measurements['BodyMass'] && measurements['BodyMassIndex'] && 
                 measurements['LeanBodyMass'] && measurements['BodyFatPercentage']) {
                 
-                const bodyMass = measurements['BodyMass'].value;
-                const bmi = measurements['BodyMassIndex'].value;
-                const leanBodyMass = measurements['LeanBodyMass'].value;
-                const bodyFatPercentage = measurements['BodyFatPercentage'].value;
+                const bodyMass = measurements['BodyMass'] as number;
+                const bmi = measurements['BodyMassIndex'] as number;
+                const leanBodyMass = measurements['LeanBodyMass'] as number;
+                const bodyFatPercentage = measurements['BodyFatPercentage'] as number;
                 
                 const height = this.calculateHeight(bodyMass, bmi);
                 const ffmi = this.calculateFFMI(leanBodyMass, height);
                 const bci = this.calculateBCI(ffmi, bodyFatPercentage / 100);
                 
-                measurements['FFMI'] = {
-                    value: this.roundToTwoDecimals(ffmi),
-                    unit: 'kg/m²'
-                };
-                measurements['BCI'] = {
-                    value: this.roundToTwoDecimals(bci),
-                    unit: 'kg/m²'
-                };
+                measurements['FFMI'] = this.roundToTwoDecimals(ffmi);
+                measurements['BCI'] = this.roundToTwoDecimals(bci);
             }
         }
         
-        return combined;
+        return Object.values(combined);
     }
 
-    /**
-     * Get ISO week number for a date
-     * @param {Date} date - The date to get week number for
-     * @returns {number} The week number
-     */
-    getWeekNumber(date) {
-        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-        const dayNum = d.getUTCDay() || 7;
-        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    }
 
-    /**
-     * Group data by week
-     * @param {Object} combinedData - Combined data by date
-     * @returns {Object} Data grouped by week
-     */
-    groupByWeek(combinedData) {
-        const weeklyData = {};
-        
-        const sortedData = Object.keys(combinedData)
-            .sort()
-            .map(date => ({
-                date: date,
-                measurements: combinedData[date]
-            }));
-        
-        sortedData.forEach(record => {
-            const date = new Date(record.date);
-            const year = date.getFullYear();
-            const weekNumber = this.getWeekNumber(date);
-            const weekKey = `${year}-week-${weekNumber.toString().padStart(2, '0')}`;
-            
-            if (!weeklyData[weekKey]) {
-                weeklyData[weekKey] = [];
-            }
-            
-            weeklyData[weekKey].push(record);
-        });
-        
-        return weeklyData;
-    }
 
-    /**
-     * Save weekly files
-     * @param {Object} weeklyData - Data grouped by week
-     */
-    saveWeeklyFiles(weeklyData) {
-        if (!fs.existsSync(this.resultsDir)) {
-            fs.mkdirSync(this.resultsDir);
-        }
-        
-        Object.keys(weeklyData).forEach(weekKey => {
-            const weekData = weeklyData[weekKey];
-            const weekResult = {
-                week: weekKey,
-                totalDays: weekData.length,
-                measurements: weekData
-            };
-            
-            const outputFile = path.join(this.resultsDir, `${weekKey}-health.json`);
-            fs.writeFileSync(outputFile, JSON.stringify(weekResult, null, 2));
-            console.log(`Health results written to ${outputFile}`);
-        });
-    }
+
 
     /**
      * Main processing method
      */
-    process() {
+    public process(): WeeklyMetrics[] {
         try {
             console.log('Loading health data...');
             const allData = this.loadHealthData();
             console.log(`Total records read: ${allData.length}`);
             
             console.log('Processing health data...');
-            const combinedData = this.combineByDate(allData);
+            const dailyMetrics = this.createDailyMetrics(allData);
             
             console.log('Grouping by week...');
-            const weeklyData = this.groupByWeek(combinedData);
+            const weeklyMetrics = this.createWeeklyMetrics(dailyMetrics);
             
             console.log('Saving weekly files...');
-            this.saveWeeklyFiles(weeklyData);
+            this.saveWeeklyFiles(weeklyMetrics, 'health');
             
             console.log('Health processing completed successfully!');
-            return weeklyData;
+            return weeklyMetrics;
         } catch (error) {
-            console.error('Error processing health data:', error.message);
+            console.error('Error processing health data:', error instanceof Error ? error.message : String(error));
             throw error;
         }
     }
 }
-
-module.exports = HealthProcessor;

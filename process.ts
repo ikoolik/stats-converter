@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-const TrainingProcessor = require('./processors/training.js');
-const HealthProcessor = require('./processors/health.js');
-const MacrosProcessor = require('./processors/macros.js');
+import { TrainingProcessor } from './processors/training';
+import { HealthProcessor } from './processors/health';
+import { MacrosProcessor } from './processors/macros';
 
 /**
  * Main processing function that orchestrates all data processing
  */
-async function processAllData() {
+async function processAllData(): Promise<any> {
     console.log('=== Starting Data Processing ===\n');
     
     try {
@@ -39,7 +39,7 @@ async function processAllData() {
         };
         
     } catch (error) {
-        console.error('Error during data processing:', error.message);
+        console.error('Error during data processing:', error instanceof Error ? error.message : String(error));
         process.exit(1);
     }
 }
@@ -47,7 +47,7 @@ async function processAllData() {
 /**
  * Process only training data
  */
-async function processTrainingOnly() {
+async function processTrainingOnly(): Promise<any> {
     console.log('=== Processing Training Data Only ===\n');
     
     try {
@@ -60,7 +60,7 @@ async function processTrainingOnly() {
         return trainingResults;
         
     } catch (error) {
-        console.error('Error processing training data:', error.message);
+        console.error('Error processing training data:', error instanceof Error ? error.message : String(error));
         process.exit(1);
     }
 }
@@ -68,7 +68,7 @@ async function processTrainingOnly() {
 /**
  * Process only health data
  */
-async function processHealthOnly() {
+async function processHealthOnly(): Promise<any> {
     console.log('=== Processing Health Data Only ===\n');
     
     try {
@@ -81,7 +81,7 @@ async function processHealthOnly() {
         return healthResults;
         
     } catch (error) {
-        console.error('Error processing health data:', error.message);
+        console.error('Error processing health data:', error instanceof Error ? error.message : String(error));
         process.exit(1);
     }
 }
@@ -89,7 +89,7 @@ async function processHealthOnly() {
 /**
  * Process only macros data
  */
-async function processMacrosOnly() {
+async function processMacrosOnly(): Promise<any> {
     console.log('=== Processing Macros Data Only ===\n');
     
     try {
@@ -102,7 +102,7 @@ async function processMacrosOnly() {
         return macrosResults;
         
     } catch (error) {
-        console.error('Error processing macros data:', error.message);
+        console.error('Error processing macros data:', error instanceof Error ? error.message : String(error));
         process.exit(1);
     }
 }
@@ -140,7 +140,7 @@ if (require.main === module) {
     main();
 }
 
-module.exports = {
+export {
     processAllData,
     processTrainingOnly,
     processHealthOnly,
