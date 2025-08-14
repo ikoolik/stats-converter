@@ -2,6 +2,7 @@
 
 const TrainingProcessor = require('./processors/training.js');
 const HealthProcessor = require('./processors/health.js');
+const MacrosProcessor = require('./processors/macros.js');
 
 /**
  * Main processing function that orchestrates all data processing
@@ -22,12 +23,19 @@ async function processAllData() {
         const healthResults = healthProcessor.process();
         console.log(`   ✓ Health data processed for ${Object.keys(healthResults).length} weeks\n`);
         
+        // Process macros data
+        console.log('3. Processing Macros Data...');
+        const macrosProcessor = new MacrosProcessor();
+        const macrosResults = macrosProcessor.process();
+        console.log(`   ✓ Macros data processed for ${Object.keys(macrosResults).length} weeks\n`);
+        
         console.log('=== Data Processing Completed Successfully ===');
         console.log(`Generated files in: ${require('path').join(__dirname, 'results')}`);
         
         return {
             training: trainingResults,
-            health: healthResults
+            health: healthResults,
+            macros: macrosResults
         };
         
     } catch (error) {
@@ -79,6 +87,27 @@ async function processHealthOnly() {
 }
 
 /**
+ * Process only macros data
+ */
+async function processMacrosOnly() {
+    console.log('=== Processing Macros Data Only ===\n');
+    
+    try {
+        const macrosProcessor = new MacrosProcessor();
+        const macrosResults = macrosProcessor.process();
+        
+        console.log('=== Macros Processing Completed ===');
+        console.log(`Generated files in: ${require('path').join(__dirname, 'results')}`);
+        
+        return macrosResults;
+        
+    } catch (error) {
+        console.error('Error processing macros data:', error.message);
+        process.exit(1);
+    }
+}
+
+/**
  * Main function that handles command line arguments
  */
 function main() {
@@ -93,6 +122,10 @@ function main() {
             
         case 'health':
             processHealthOnly();
+            break;
+            
+        case 'macros':
+            processMacrosOnly();
             break;
             
         case 'all':
@@ -110,5 +143,6 @@ if (require.main === module) {
 module.exports = {
     processAllData,
     processTrainingOnly,
-    processHealthOnly
+    processHealthOnly,
+    processMacrosOnly
 };

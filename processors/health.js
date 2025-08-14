@@ -12,15 +12,16 @@ class HealthProcessor {
 
     /**
      * Find all CSV health data files in the sources directory
+     * Only processes files that start with "HK"
      * @returns {Array} Array of CSV file paths
      */
     findHealthDataFiles() {
         try {
             const files = fs.readdirSync(this.sourcesDir);
-            const csvFiles = files.filter(file => file.endsWith('.csv'));
+            const csvFiles = files.filter(file => file.endsWith('.csv') && file.startsWith('HK'));
             
             if (csvFiles.length === 0) {
-                throw new Error(`No CSV health data files found in ${this.sourcesDir}`);
+                throw new Error(`No CSV health data files starting with 'HK' found in ${this.sourcesDir}`);
             }
             
             return csvFiles.map(file => path.join(this.sourcesDir, file));
@@ -510,7 +511,7 @@ class HealthProcessor {
                 measurements: weekData
             };
             
-            const outputFile = path.join(this.resultsDir, `${weekKey}-composition.json`);
+            const outputFile = path.join(this.resultsDir, `${weekKey}-health.json`);
             fs.writeFileSync(outputFile, JSON.stringify(weekResult, null, 2));
             console.log(`Health results written to ${outputFile}`);
         });
