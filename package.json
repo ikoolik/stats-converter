@@ -6,7 +6,11 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/process.js",
-    "dev": "ts-node process.ts"
+    "dev": "ts-node process.ts",
+    "process:all": "npm run build && npm start -- all",
+    "process:health": "npm run build && npm start -- health",
+    "process:macros": "npm run build && npm start -- macros",
+    "process:training": "npm run build && npm start -- training"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
