@@ -3,12 +3,8 @@ import { BaseProcessor } from "./base";
 import { DailyMetrics, WeeklyMetrics } from "../types";
 
 // Constants
-const MINUTES_PER_HOUR = 60;
-const MILLISECONDS_PER_SECOND = 1000;
-const SECONDS_PER_MINUTE = 60;
-const SLEEP_SESSION_GAP_THRESHOLD_MS =
-  30 * MINUTES_PER_HOUR * MILLISECONDS_PER_SECOND; // 30 minutes in milliseconds
-const BODY_FAT_PERCENTAGE_CONVERSION = 100;
+const MILLISECONDS_PER_MINUTE = 60000;
+const SLEEP_SESSION_GAP_THRESHOLD_MS =1800000;
 
 interface HealthRecord {
   date: string;
@@ -72,10 +68,7 @@ class SleepAnalysisParser extends HealthRecordParser {
   private calculateDurationMinutes(startDate: string, endDate: string): number {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    return Math.round(
-      (end.getTime() - start.getTime()) /
-        (MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE),
-    );
+    return Math.round((end.getTime() - start.getTime()) / MILLISECONDS_PER_MINUTE);
   }
 }
 
@@ -123,9 +116,7 @@ class BodyMetricsParser extends HealthRecordParser {
 
     const parsedValue =
       type === "HKQuantityTypeIdentifierBodyFatPercentage"
-        ? this.roundToTwoDecimals(
-            parseFloat(value) * BODY_FAT_PERCENTAGE_CONVERSION,
-          )
+        ? this.roundToTwoDecimals(parseFloat(value) * 100) // Convert to full percentage
         : this.roundToTwoDecimals(parseFloat(value));
 
     return {
