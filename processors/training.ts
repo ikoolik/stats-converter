@@ -90,7 +90,7 @@ export class TrainingProcessor extends BaseProcessor {
       .filter((day) => day.trainingId)
       .map((day) => ({
         ...day,
-        date: new Date(day.date).toLocaleDateString(),
+        date: new Date(day.date).toISOString().split("T")[0],
       }))
       .sort((a, b) => {
         const dateA = new Date(a.date);
