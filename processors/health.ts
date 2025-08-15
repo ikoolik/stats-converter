@@ -28,9 +28,153 @@ interface SleepMetrics {
   wakeUps: number;
 }
 
+abstract class HealthRecordParser {
+  protected extractDate: (dateString: string) => string;
+  protected roundToTwoDecimals: (value: number) => number;
+
+  constructor(
+    extractDateFn: (dateString: string) => string,
+    roundFn: (value: number) => number,
+  ) {
+    this.extractDate = extractDateFn;
+    this.roundToTwoDecimals = roundFn;
+  }
+
+  abstract canParse(type: string, sourceName?: string): boolean;
+  abstract parse(fields: string[]): HealthRecord | null;
+}
+
+class SleepAnalysisParser extends HealthRecordParser {
+  canParse(type: string): boolean {
+    return type === "HKCategoryTypeIdentifierSleepAnalysis";
+  }
+
+  parse(fields: string[]): HealthRecord | null {
+    if (fields.length < 8) return null;
+
+    const type = fields[0];
+    const startDate = fields[5];
+    const endDate = fields[6];
+    const value = fields[7];
+    const dateKey = this.extractDate(startDate);
+    const duration = this.calculateDurationMinutes(startDate, endDate);
+
+    return {
+      date: dateKey,
+      type: type,
+      value: value,
+      duration: duration,
+      startDate: startDate,
+      endDate: endDate,
+    };
+  }
+
+  private calculateDurationMinutes(startDate: string, endDate: string): number {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    return Math.round(
+      (end.getTime() - start.getTime()) /
+        (MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE),
+    );
+  }
+}
+
+class StepCountParser extends HealthRecordParser {
+  canParse(type: string, sourceName?: string): boolean {
+    return (
+      type === "HKQuantityTypeIdentifierStepCount" && sourceName === "Zepp Life"
+    );
+  }
+
+  parse(fields: string[]): HealthRecord | null {
+    if (fields.length < 9) return null;
+
+    const type = fields[0];
+    const startDate = fields[5];
+    const unit = fields[7];
+    const value = fields[8];
+    const dateKey = this.extractDate(startDate);
+
+    return {
+      date: dateKey,
+      type: type,
+      value: this.roundToTwoDecimals(parseFloat(value)),
+      unit: unit,
+    };
+  }
+}
+
+class BodyMetricsParser extends HealthRecordParser {
+  canParse(type: string): boolean {
+    return (
+      type !== "HKCategoryTypeIdentifierSleepAnalysis" &&
+      type !== "HKQuantityTypeIdentifierStepCount"
+    );
+  }
+
+  parse(fields: string[]): HealthRecord | null {
+    if (fields.length < 9) return null;
+
+    const type = fields[0];
+    const startDate = fields[5];
+    const unit = fields[7];
+    const value = fields[8];
+    const dateKey = this.extractDate(startDate);
+
+    const parsedValue =
+      type === "HKQuantityTypeIdentifierBodyFatPercentage"
+        ? this.roundToTwoDecimals(
+            parseFloat(value) * BODY_FAT_PERCENTAGE_CONVERSION,
+          )
+        : this.roundToTwoDecimals(parseFloat(value));
+
+    return {
+      date: dateKey,
+      type: type,
+      value: parsedValue,
+      unit: unit,
+    };
+  }
+}
+
 export class HealthProcessor extends BaseProcessor {
+  private parsers: HealthRecordParser[];
+
   constructor() {
     super();
+    this.parsers = this.initializeParsers();
+  }
+
+  private initializeParsers(): HealthRecordParser[] {
+    return [
+      new SleepAnalysisParser(
+        (dateString: string) => this.extractDate(dateString),
+        (value: number) => this.roundToTwoDecimals(value),
+      ),
+      new StepCountParser(
+        (dateString: string) => this.extractDate(dateString),
+        (value: number) => this.roundToTwoDecimals(value),
+      ),
+      new BodyMetricsParser(
+        (dateString: string) => this.extractDate(dateString),
+        (value: number) => this.roundToTwoDecimals(value),
+      ),
+    ];
+  }
+
+  private parseCSVRecord(fields: string[]): HealthRecord | null {
+    if (fields.length < 8) return null;
+
+    const type = fields[0];
+    const sourceName = fields[1];
+
+    for (const parser of this.parsers) {
+      if (parser.canParse(type, sourceName)) {
+        return parser.parse(fields);
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -179,21 +323,6 @@ export class HealthProcessor extends BaseProcessor {
   }
 
   /**
-   * Calculate duration between two timestamps in minutes
-   * @param startDate - Start timestamp
-   * @param endDate - End timestamp
-   * @returns Duration in minutes
-   */
-  private calculateDurationMinutes(startDate: string, endDate: string): number {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    return Math.round(
-      (end.getTime() - start.getTime()) /
-        (MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE),
-    );
-  }
-
-  /**
    * Group sleep data by sleep session (handles cross-midnight sessions)
    * @param sleepData - Array of sleep records
    * @returns Sleep sessions grouped by date
@@ -251,7 +380,6 @@ export class HealthProcessor extends BaseProcessor {
   private parseHKCSV(filePath: string): HealthRecord[] {
     const content = this.loadTextFile(filePath);
     const lines = content.split("\n");
-
     const dataLines = lines.slice(2); // Skip sep=, and header
     const data: HealthRecord[] = [];
 
@@ -259,51 +387,10 @@ export class HealthProcessor extends BaseProcessor {
       if (line.trim() === "") continue;
 
       const fields = this.parseCSVLine(line);
+      const record = this.parseCSVRecord(fields);
 
-      if (fields.length >= 8) {
-        const type = fields[0];
-        const sourceName = fields[1];
-        const startDate = fields[5];
-        const endDate = fields[6];
-
-        // Filter step count data to only include Zepp Life source
-        if (
-          type === "HKQuantityTypeIdentifierStepCount" &&
-          sourceName !== "Zepp Life"
-        ) {
-          continue;
-        }
-
-        const dateKey = this.extractDate(startDate);
-
-        if (type === "HKCategoryTypeIdentifierSleepAnalysis") {
-          const value = fields[7];
-          const duration = this.calculateDurationMinutes(startDate, endDate);
-
-          data.push({
-            date: dateKey,
-            type: type,
-            value: value,
-            duration: duration,
-            startDate: startDate,
-            endDate: endDate,
-          });
-        } else if (fields.length >= 9) {
-          const unit = fields[7];
-          const value = fields[8];
-
-          data.push({
-            date: dateKey,
-            type: type,
-            value:
-              type === "HKQuantityTypeIdentifierBodyFatPercentage"
-                ? this.roundToTwoDecimals(
-                    parseFloat(value) * BODY_FAT_PERCENTAGE_CONVERSION,
-                  )
-                : this.roundToTwoDecimals(parseFloat(value)),
-            unit: unit,
-          });
-        }
+      if (record) {
+        data.push(record);
       }
     }
 
