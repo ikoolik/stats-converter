@@ -5,6 +5,7 @@ A Node.js application that processes health and fitness data exports from mobile
 ## Overview
 
 This project processes file exports from:
+
 - **Gym Tracker** app - for workout and training data
 - **Health Export CSV** app - for health metrics from Apple HealthKit
 - **Cronometer** app - for nutrition and macro tracking data
@@ -30,6 +31,7 @@ The processor combines and organizes this data into weekly JSON files with compr
 ## Installation
 
 1. Clone the repository:
+
 ```bash
 git clone git@github.com:ikoolik/stats-converter.git
 cd stats-converter
@@ -56,6 +58,7 @@ node process.js
 ### 3. View Results
 
 Processed data will be saved in the `results/` folder as weekly JSON files:
+
 - `YYYY-week-XX-health.json` - Health and body composition data
 - `YYYY-week-XX-training.json` - Workout and training data
 - `YYYY-week-XX-macros.json` - Nutrition and macro data
@@ -63,7 +66,9 @@ Processed data will be saved in the `results/` folder as weekly JSON files:
 ## Data Sources
 
 ### Health Export CSV
+
 Exports Apple HealthKit data to CSV format, including:
+
 - Sleep analysis (Core, Deep, REM sleep stages)
 - Heart rate measurements
 - Step counts
@@ -71,14 +76,18 @@ Exports Apple HealthKit data to CSV format, including:
 - Calculated metrics (FFMI, BCI)
 
 ### Gym Tracker
+
 Provides workout and training data including:
+
 - Exercise sessions
 - Sets, reps, and weights
 - Workout duration and intensity
 - Performance tracking
 
 ### Cronometer
+
 Provides nutrition and macro tracking data including:
+
 - Daily fat, carbohydrate, and protein intake
 - Total caloric intake calculated from macros
 - Nutritional data for comprehensive health analysis
@@ -86,6 +95,7 @@ Provides nutrition and macro tracking data including:
 ## Output Format
 
 ### Health Data (`YYYY-week-XX-health.json`)
+
 ```json
 {
   "week": "2024-week-01",
@@ -98,7 +108,7 @@ Provides nutrition and macro tracking data including:
       "HeartRate": { "value": 68.5, "unit": "count/min" },
       "Sleep": {
         "Core": "6h 30m",
-        "Deep": "1h 15m", 
+        "Deep": "1h 15m",
         "REM": "1h 45m",
         "Total": "9h 30m",
         "wakeUps": 3
@@ -109,6 +119,7 @@ Provides nutrition and macro tracking data including:
 ```
 
 ### Macros Data (`YYYY-week-XX-macros.json`)
+
 ```json
 {
   "week": "2024-week-01",
@@ -126,6 +137,7 @@ Provides nutrition and macro tracking data including:
 ```
 
 ### Training Data (`YYYY-week-XX-training.json`)
+
 ```json
 {
   "week": "2024-week-01",

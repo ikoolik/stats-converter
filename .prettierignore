@@ -1,0 +1,6 @@
+dist/
+node_modules/
+sources/
+results/
+package-lock.json
+*.d.ts

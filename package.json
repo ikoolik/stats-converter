@@ -7,6 +7,10 @@
     "build": "tsc",
     "start": "node dist/process.js",
     "dev": "ts-node process.ts",
+    "lint": "eslint . --ext .ts,.js",
+    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "process:all": "npm run build && npm start -- all",
     "process:health": "npm run build && npm start -- health",
     "process:macros": "npm run build && npm start -- macros",
@@ -14,10 +18,21 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0",
-    "ts-node": "^10.9.0"
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
   },
-  "keywords": ["health", "fitness", "data-processing", "typescript"],
+  "keywords": [
+    "health",
+    "fitness",
+    "data-processing",
+    "typescript"
+  ],
   "author": "",
   "license": "MIT"
 }

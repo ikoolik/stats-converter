@@ -3,14 +3,14 @@
  */
 
 export interface DailyMetrics {
-    date: string;
-    metrics?: Record<string, any>;
-    exercises?: any[];
-    description?: string;
+  date: string;
+  metrics?: Record<string, unknown>;
+  exercises?: unknown[];
+  description?: string;
 }
 
 export interface WeeklyMetrics {
-    week: string;
-    totalDays: number;
-    days: DailyMetrics[];
+  week: string;
+  totalDays: number;
+  days: DailyMetrics[];
 }

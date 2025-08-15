@@ -14,14 +14,6 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": [
-    "process.ts",
-    "processors/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "sources",
-    "results"
-  ]
+  "include": ["process.ts", "processors/**/*.ts"],
+  "exclude": ["node_modules", "dist", "sources", "results"]
 }
