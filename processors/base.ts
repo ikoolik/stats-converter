@@ -2,6 +2,13 @@ import * as fs from "fs";
 import * as path from "path";
 import { DailyMetrics, WeeklyMetrics } from "../types";
 
+// Constants
+const MILLISECONDS_PER_DAY = 86400000;
+const DECIMAL_PRECISION = 100;
+const ISO_WEEK_BASE = 4;
+const ISO_WEEK_DIVISOR = 7;
+const WEEK_PADDING_LENGTH = 2;
+
 /**
  * Base class for all data processors
  * Provides common infrastructure and utility methods
@@ -45,7 +52,7 @@ export class BaseProcessor {
    * @returns The rounded value
    */
   protected roundToTwoDecimals(value: number): number {
-    return Math.round(value * 100) / 100;
+    return Math.round(value * DECIMAL_PRECISION) / DECIMAL_PRECISION;
   }
 
   /**
@@ -57,10 +64,13 @@ export class BaseProcessor {
     const d = new Date(
       Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
     );
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const dayNum = d.getUTCDay() || ISO_WEEK_DIVISOR;
+    d.setUTCDate(d.getUTCDate() + ISO_WEEK_BASE - dayNum);
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+    return Math.ceil(
+      ((d.getTime() - yearStart.getTime()) / MILLISECONDS_PER_DAY + 1) /
+        ISO_WEEK_DIVISOR,
+    );
   }
 
   /**
@@ -106,7 +116,7 @@ export class BaseProcessor {
       const date = new Date(record.date);
       const year = date.getFullYear();
       const weekNumber = this.getWeekNumber(date);
-      const weekKey = `${year}-week-${weekNumber.toString().padStart(2, "0")}`;
+      const weekKey = `${year}-week-${weekNumber.toString().padStart(WEEK_PADDING_LENGTH, "0")}`;
 
       if (!weeklyData[weekKey]) {
         weeklyData[weekKey] = [];

@@ -3,7 +3,12 @@ import { BaseProcessor } from "./base";
 import { DailyMetrics, WeeklyMetrics } from "../types";
 
 // Constants
-const SLEEP_SESSION_GAP_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutes in milliseconds
+const MINUTES_PER_HOUR = 60;
+const MILLISECONDS_PER_SECOND = 1000;
+const SECONDS_PER_MINUTE = 60;
+const SLEEP_SESSION_GAP_THRESHOLD_MS =
+  30 * MINUTES_PER_HOUR * MILLISECONDS_PER_SECOND; // 30 minutes in milliseconds
+const BODY_FAT_PERCENTAGE_CONVERSION = 100;
 
 interface HealthRecord {
   date: string;
@@ -168,8 +173,8 @@ export class HealthProcessor extends BaseProcessor {
    * @returns Formatted time string
    */
   private formatTimeFromMinutes(minutes: number): string {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
+    const hours = Math.floor(minutes / MINUTES_PER_HOUR);
+    const mins = minutes % MINUTES_PER_HOUR;
     return `${hours}h ${mins.toString().padStart(2, "0")}m`;
   }
 
@@ -182,7 +187,10 @@ export class HealthProcessor extends BaseProcessor {
   private calculateDurationMinutes(startDate: string, endDate: string): number {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    return Math.round((end.getTime() - start.getTime()) / (1000 * 60));
+    return Math.round(
+      (end.getTime() - start.getTime()) /
+        (MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE),
+    );
   }
 
   /**
@@ -289,7 +297,9 @@ export class HealthProcessor extends BaseProcessor {
             type: type,
             value:
               type === "HKQuantityTypeIdentifierBodyFatPercentage"
-                ? this.roundToTwoDecimals(parseFloat(value) * 100)
+                ? this.roundToTwoDecimals(
+                    parseFloat(value) * BODY_FAT_PERCENTAGE_CONVERSION,
+                  )
                 : this.roundToTwoDecimals(parseFloat(value)),
             unit: unit,
           });
@@ -454,7 +464,10 @@ export class HealthProcessor extends BaseProcessor {
 
         const height = this.calculateHeight(bodyMass, bmi);
         const ffmi = this.calculateFFMI(leanBodyMass, height);
-        const bci = this.calculateBCI(ffmi, bodyFatPercentage / 100);
+        const bci = this.calculateBCI(
+          ffmi,
+          bodyFatPercentage / BODY_FAT_PERCENTAGE_CONVERSION,
+        );
 
         measurements["FFMI"] = this.roundToTwoDecimals(ffmi);
         measurements["BCI"] = this.roundToTwoDecimals(bci);

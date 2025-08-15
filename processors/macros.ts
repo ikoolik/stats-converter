@@ -2,6 +2,11 @@ import * as path from "path";
 import { BaseProcessor } from "./base";
 import { DailyMetrics, WeeklyMetrics } from "../types";
 
+// Constants
+const KCAL_PER_GRAM_FAT = 9;
+const KCAL_PER_GRAM_CARBS = 4;
+const KCAL_PER_GRAM_PROTEIN = 4;
+
 export class MacrosProcessor extends BaseProcessor {
   private sourceFile: string;
 
@@ -50,10 +55,10 @@ export class MacrosProcessor extends BaseProcessor {
           // Sum total calories
           const totalKcal = fatKcal + carbsKcal + proteinKcal;
 
-          // Convert calories to grams (4 kcal/g for protein and carbs, 9 kcal/g for fat)
-          const fatGrams = fatKcal / 9;
-          const carbsGrams = carbsKcal / 4;
-          const proteinGrams = proteinKcal / 4;
+          // Convert calories to grams using nutritional conversion factors
+          const fatGrams = fatKcal / KCAL_PER_GRAM_FAT;
+          const carbsGrams = carbsKcal / KCAL_PER_GRAM_CARBS;
+          const proteinGrams = proteinKcal / KCAL_PER_GRAM_PROTEIN;
 
           const date = this.extractDate(dateTime);
 
