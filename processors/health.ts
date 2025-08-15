@@ -180,9 +180,11 @@ class BodyCompositionProcessor implements MetricProcessor {
   }
 }
 
-class HeartRateProcessor implements MetricProcessor {
+class GenericQuantityProcessor implements MetricProcessor {
   constructor(
-    private calculateAverage: (data: HealthRecord[]) => number | null,
+    private healthKitIdentifier: string,
+    private metricName: string,
+    private calculateValue: (data: HealthRecord[]) => number | null,
   ) {}
 
   processMetrics(
@@ -191,57 +193,127 @@ class HeartRateProcessor implements MetricProcessor {
   ): void {
     for (const date in groupedData) {
       const dateData = groupedData[date];
-      const heartRateData = dateData["HKQuantityTypeIdentifierHeartRate"];
+      const metricData = dateData[this.healthKitIdentifier];
 
-      if (heartRateData) {
-        const avgHeartRate = this.calculateAverage(heartRateData);
-        if (avgHeartRate !== null) {
+      if (metricData) {
+        const calculatedValue = this.calculateValue(metricData);
+        if (calculatedValue !== null) {
           if (!combined[date]) {
             combined[date] = { date, metrics: {} };
           }
-          combined[date].metrics!["HeartRate"] = avgHeartRate;
+          combined[date].metrics![this.metricName] = calculatedValue;
         }
       }
     }
   }
 }
 
-class StepCountProcessor implements MetricProcessor {
-  constructor(
-    private calculateTotal: (data: HealthRecord[]) => number | null,
-  ) {}
+class SleepCalculator {
+  private static readonly ASLEEP_STATES = [
+    "asleepCore",
+    "asleepDeep",
+    "asleepREM",
+  ];
+  private static readonly MINUTES_PER_HOUR = 60;
 
-  processMetrics(
-    groupedData: Record<string, Record<string, HealthRecord[]>>,
-    combined: Record<string, DailyMetrics>,
-  ): void {
-    for (const date in groupedData) {
-      const dateData = groupedData[date];
-      const stepData = dateData["HKQuantityTypeIdentifierStepCount"];
+  static calculateSleepMetrics(sleepData: HealthRecord[]): SleepMetrics | null {
+    if (!sleepData?.length) return null;
 
-      if (stepData) {
-        const totalSteps = this.calculateTotal(stepData);
-        if (totalSteps !== null) {
-          if (!combined[date]) {
-            combined[date] = { date, metrics: {} };
-          }
-          combined[date].metrics!["StepCount"] = totalSteps;
-        }
+    const sleepMetrics = {
+      inBed: 0,
+      asleepCore: 0,
+      asleepDeep: 0,
+      asleepREM: 0,
+      awake: 0,
+      wakeUps: 0,
+    };
+
+    let previousState: string | null = null;
+
+    for (const record of sleepData) {
+      const duration = record.duration || 0;
+      const state = record.value as string;
+
+      if (state in sleepMetrics) {
+        sleepMetrics[state as keyof typeof sleepMetrics] += duration;
+      }
+
+      if (
+        previousState &&
+        this.ASLEEP_STATES.includes(previousState) &&
+        state === "awake"
+      ) {
+        sleepMetrics.wakeUps++;
+      }
+
+      previousState = state;
+    }
+
+    const totalSleep =
+      sleepMetrics.asleepCore +
+      sleepMetrics.asleepDeep +
+      sleepMetrics.asleepREM;
+
+    return {
+      Core: this.formatTimeFromMinutes(Math.round(sleepMetrics.asleepCore)),
+      Deep: this.formatTimeFromMinutes(Math.round(sleepMetrics.asleepDeep)),
+      REM: this.formatTimeFromMinutes(Math.round(sleepMetrics.asleepREM)),
+      Total: this.formatTimeFromMinutes(Math.round(totalSleep)),
+      wakeUps: sleepMetrics.wakeUps,
+    };
+  }
+
+  static groupSleepDataBySession(
+    data: HealthRecord[],
+  ): Record<string, HealthRecord[]> {
+    const sessions: Record<string, HealthRecord[]> = {};
+    const sessionThreshold = 120;
+
+    data.sort(
+      (a, b) =>
+        new Date(a.startDate || "").getTime() -
+        new Date(b.startDate || "").getTime(),
+    );
+
+    let currentSessionStart: string | null = null;
+
+    for (const record of data) {
+      if (!record.startDate || !record.endDate) continue;
+
+      const recordStart = new Date(record.startDate).getTime();
+
+      if (currentSessionStart === null) {
+        currentSessionStart = record.startDate;
+        sessions[currentSessionStart] = [record];
+        continue;
+      }
+
+      const lastSession = sessions[currentSessionStart];
+      const lastRecord = lastSession[lastSession.length - 1];
+      if (!lastRecord.endDate) continue;
+
+      const lastEnd = new Date(lastRecord.endDate).getTime();
+      const gapMinutes = (recordStart - lastEnd) / (1000 * 60);
+
+      if (gapMinutes > sessionThreshold) {
+        currentSessionStart = record.startDate;
+        sessions[currentSessionStart] = [record];
+      } else {
+        lastSession.push(record);
       }
     }
+
+    return sessions;
+  }
+
+  private static formatTimeFromMinutes(minutes: number): string {
+    const hours = Math.floor(minutes / this.MINUTES_PER_HOUR);
+    const remainingMinutes = minutes % this.MINUTES_PER_HOUR;
+    return `${hours}h ${remainingMinutes}m`;
   }
 }
 
 class SleepMetricsProcessor implements MetricProcessor {
-  constructor(
-    private groupSleepSessions: (
-      data: HealthRecord[],
-    ) => Record<string, HealthRecord[]>,
-    private calculateSleepMetrics: (
-      data: HealthRecord[],
-    ) => SleepMetrics | null,
-  ) {}
-
   processMetrics(
     groupedData: Record<string, Record<string, HealthRecord[]>>,
     combined: Record<string, DailyMetrics>,
@@ -257,11 +329,12 @@ class SleepMetricsProcessor implements MetricProcessor {
     }
 
     if (allSleepData.length > 0) {
-      const sleepSessions = this.groupSleepSessions(allSleepData);
+      const sleepSessions =
+        SleepCalculator.groupSleepDataBySession(allSleepData);
 
       for (const sessionDate in sleepSessions) {
         const sessionData = sleepSessions[sessionDate];
-        const sleepMetrics = this.calculateSleepMetrics(sessionData);
+        const sleepMetrics = SleepCalculator.calculateSleepMetrics(sessionData);
 
         if (sleepMetrics !== null) {
           if (!combined[sessionDate]) {
@@ -347,12 +420,17 @@ export class HealthProcessor extends BaseProcessor {
   private initializeMetricProcessors(): MetricProcessor[] {
     return [
       new BodyCompositionProcessor(),
-      new HeartRateProcessor(this.calculateAverageHeartRate.bind(this)),
-      new StepCountProcessor(this.calculateTotalSteps.bind(this)),
-      new SleepMetricsProcessor(
-        this.groupSleepDataBySession.bind(this),
-        this.calculateSleepMetrics.bind(this),
+      new GenericQuantityProcessor(
+        "HKQuantityTypeIdentifierHeartRate",
+        "HeartRate",
+        this.calculateAverageHeartRate.bind(this),
       ),
+      new GenericQuantityProcessor(
+        "HKQuantityTypeIdentifierStepCount",
+        "StepCount",
+        this.calculateTotalSteps.bind(this),
+      ),
+      new SleepMetricsProcessor(),
       new DerivedMetricsProcessor(
         this.calculateHeight.bind(this),
         this.calculateFFMI.bind(this),
@@ -507,11 +585,10 @@ export class HealthProcessor extends BaseProcessor {
       }
 
       // Count wake-ups (transitions from asleep to awake)
+      const asleepStates = ["asleepCore", "asleepDeep", "asleepREM"];
       if (
         previousState &&
-        (previousState === "asleepCore" ||
-          previousState === "asleepDeep" ||
-          previousState === "asleepREM") &&
+        asleepStates.includes(previousState) &&
         state === "awake"
       ) {
         sleepMetrics.wakeUps++;

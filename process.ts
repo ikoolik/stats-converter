@@ -55,72 +55,51 @@ function processAllData(): Record<string, unknown> {
 }
 
 /**
- * Process only training data
+ * Generic processor function to reduce code duplication
  */
-function processTrainingOnly(): WeeklyMetrics[] {
-  console.log("=== Processing Training Data Only ===\n");
+function processDataType<T>(
+  ProcessorClass: new () => T & { process(): WeeklyMetrics[] },
+  dataType: string,
+): WeeklyMetrics[] {
+  const capitalizedType = dataType.charAt(0).toUpperCase() + dataType.slice(1);
+  console.log(`=== Processing ${capitalizedType} Data Only ===\n`);
 
   try {
-    const trainingProcessor = new TrainingProcessor();
-    const trainingResults = trainingProcessor.process();
+    const processor = new ProcessorClass();
+    const results = processor.process();
 
-    console.log("=== Training Processing Completed ===");
+    console.log(`=== ${capitalizedType} Processing Completed ===`);
     console.log(`Generated files in: ${path.join(__dirname, "results")}`);
 
-    return trainingResults;
+    return results;
   } catch (error) {
     console.error(
-      "Error processing training data:",
+      `Error processing ${dataType} data:`,
       error instanceof Error ? error.message : String(error),
     );
     process.exit(1);
   }
+}
+
+/**
+ * Process only training data
+ */
+function processTrainingOnly(): WeeklyMetrics[] {
+  return processDataType(TrainingProcessor, "training");
 }
 
 /**
  * Process only health data
  */
 function processHealthOnly(): WeeklyMetrics[] {
-  console.log("=== Processing Health Data Only ===\n");
-
-  try {
-    const healthProcessor = new HealthProcessor();
-    const healthResults = healthProcessor.process();
-
-    console.log("=== Health Processing Completed ===");
-    console.log(`Generated files in: ${path.join(__dirname, "results")}`);
-
-    return healthResults;
-  } catch (error) {
-    console.error(
-      "Error processing health data:",
-      error instanceof Error ? error.message : String(error),
-    );
-    process.exit(1);
-  }
+  return processDataType(HealthProcessor, "health");
 }
 
 /**
  * Process only macros data
  */
 function processMacrosOnly(): WeeklyMetrics[] {
-  console.log("=== Processing Macros Data Only ===\n");
-
-  try {
-    const macrosProcessor = new MacrosProcessor();
-    const macrosResults = macrosProcessor.process();
-
-    console.log("=== Macros Processing Completed ===");
-    console.log(`Generated files in: ${path.join(__dirname, "results")}`);
-
-    return macrosResults;
-  } catch (error) {
-    console.error(
-      "Error processing macros data:",
-      error instanceof Error ? error.message : String(error),
-    );
-    process.exit(1);
-  }
+  return processDataType(MacrosProcessor, "macros");
 }
 
 /**

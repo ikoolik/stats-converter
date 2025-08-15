@@ -114,59 +114,79 @@ export class TrainingProcessor extends BaseProcessor {
     index: number,
     trainingData: TrainingData,
   ): DailyMetrics {
-    const formattedExercises: FormattedExercise[] = [];
-
-    // Find training for this day
     const training = trainingData.trainings.find(
       (training) => training.id === day.trainingId,
     );
-    if (training) {
-      if (training.exerciseSetIds && training.exerciseSetIds.length > 0) {
-        training.exerciseSetIds.forEach((setId) => {
-          // Find the exercise set by ID
-          const exerciseSet = trainingData.exerciseSets.find(
-            (set) => set.id === setId,
-          );
-          if (exerciseSet) {
-            // Find the exercise by ID
-            const exercise = trainingData.exercises.find(
-              (ex) => ex.id === exerciseSet.exerciseId,
-            );
-            if (exercise) {
-              formattedExercises.push(
-                this.formatExercise(
-                  exercise,
-                  exerciseSet,
-                  trainingData.exerciseSetApproaches,
-                ),
-              );
-            }
-          }
-        });
-      }
-    }
 
-    // Build description only if there's meaningful content
-    let description: string | undefined = undefined;
-    if (training) {
-      const name = training.name || "Unnamed Training";
-      const desc = training.trainingDescription || "";
-
-      if (name && desc) {
-        description = `${name} | ${desc}`;
-      } else if (name) {
-        description = name;
-      } else if (desc) {
-        description = desc;
-      }
-      // If neither name nor desc has content, description remains undefined
-    }
+    const formattedExercises = this.getFormattedExercises(
+      training,
+      trainingData,
+    );
+    const description = this.buildTrainingDescription(training);
 
     return {
       date: day.date,
       ...(description && { description }),
       exercises: formattedExercises,
     };
+  }
+
+  private getFormattedExercises(
+    training: Training | undefined,
+    trainingData: TrainingData,
+  ): FormattedExercise[] {
+    if (!training?.exerciseSetIds?.length) {
+      return [];
+    }
+
+    return training.exerciseSetIds
+      .map((setId) => this.findExerciseSetById(setId, trainingData))
+      .filter((exerciseSet) => exerciseSet !== null)
+      .map((exerciseSet) => {
+        const exercise = this.findExerciseById(
+          exerciseSet!.exerciseId,
+          trainingData,
+        );
+        return exercise
+          ? this.formatExercise(
+              exercise,
+              exerciseSet!,
+              trainingData.exerciseSetApproaches,
+            )
+          : null;
+      })
+      .filter((exercise): exercise is FormattedExercise => exercise !== null);
+  }
+
+  private findExerciseSetById(
+    setId: string,
+    trainingData: TrainingData,
+  ): ExerciseSet | null {
+    return trainingData.exerciseSets.find((set) => set.id === setId) || null;
+  }
+
+  private findExerciseById(
+    exerciseId: string,
+    trainingData: TrainingData,
+  ): Exercise | null {
+    return trainingData.exercises.find((ex) => ex.id === exerciseId) || null;
+  }
+
+  private buildTrainingDescription(
+    training: Training | undefined,
+  ): string | undefined {
+    if (!training) return undefined;
+
+    const name = training.name || "";
+    const desc = training.trainingDescription || "";
+
+    if (name && desc) {
+      return `${name} | ${desc}`;
+    }
+    if (name) {
+      return name === "Unnamed Training" ? undefined : name;
+    }
+    return desc || undefined;
   }
 
   /**
