@@ -137,12 +137,194 @@ class BodyMetricsParser extends HealthRecordParser {
   }
 }
 
+interface MetricProcessor {
+  processMetrics(
+    groupedData: Record<string, Record<string, HealthRecord[]>>,
+    combined: Record<string, DailyMetrics>,
+  ): void;
+}
+
+class BodyCompositionProcessor implements MetricProcessor {
+  private static readonly BODY_METRICS = [
+    "HKQuantityTypeIdentifierBodyFatPercentage",
+    "HKQuantityTypeIdentifierBodyMass",
+    "HKQuantityTypeIdentifierBodyMassIndex",
+    "HKQuantityTypeIdentifierLeanBodyMass",
+  ];
+
+  processMetrics(
+    groupedData: Record<string, Record<string, HealthRecord[]>>,
+    combined: Record<string, DailyMetrics>,
+  ): void {
+    for (const date in groupedData) {
+      const dateData = groupedData[date];
+
+      if (!combined[date]) {
+        combined[date] = { date, metrics: {} };
+      }
+
+      for (const type in dateData) {
+        if (BodyCompositionProcessor.BODY_METRICS.includes(type)) {
+          const records = dateData[type];
+          if (records.length > 0) {
+            const measurementType = type.replace(
+              "HKQuantityTypeIdentifier",
+              "",
+            );
+            combined[date].metrics![measurementType] = records[0]
+              .value as number;
+          }
+        }
+      }
+    }
+  }
+}
+
+class HeartRateProcessor implements MetricProcessor {
+  constructor(
+    private calculateAverage: (data: HealthRecord[]) => number | null,
+  ) {}
+
+  processMetrics(
+    groupedData: Record<string, Record<string, HealthRecord[]>>,
+    combined: Record<string, DailyMetrics>,
+  ): void {
+    for (const date in groupedData) {
+      const dateData = groupedData[date];
+      const heartRateData = dateData["HKQuantityTypeIdentifierHeartRate"];
+
+      if (heartRateData) {
+        const avgHeartRate = this.calculateAverage(heartRateData);
+        if (avgHeartRate !== null) {
+          if (!combined[date]) {
+            combined[date] = { date, metrics: {} };
+          }
+          combined[date].metrics!["HeartRate"] = avgHeartRate;
+        }
+      }
+    }
+  }
+}
+
+class StepCountProcessor implements MetricProcessor {
+  constructor(
+    private calculateTotal: (data: HealthRecord[]) => number | null,
+  ) {}
+
+  processMetrics(
+    groupedData: Record<string, Record<string, HealthRecord[]>>,
+    combined: Record<string, DailyMetrics>,
+  ): void {
+    for (const date in groupedData) {
+      const dateData = groupedData[date];
+      const stepData = dateData["HKQuantityTypeIdentifierStepCount"];
+
+      if (stepData) {
+        const totalSteps = this.calculateTotal(stepData);
+        if (totalSteps !== null) {
+          if (!combined[date]) {
+            combined[date] = { date, metrics: {} };
+          }
+          combined[date].metrics!["StepCount"] = totalSteps;
+        }
+      }
+    }
+  }
+}
+
+class SleepMetricsProcessor implements MetricProcessor {
+  constructor(
+    private groupSleepSessions: (
+      data: HealthRecord[],
+    ) => Record<string, HealthRecord[]>,
+    private calculateSleepMetrics: (
+      data: HealthRecord[],
+    ) => SleepMetrics | null,
+  ) {}
+
+  processMetrics(
+    groupedData: Record<string, Record<string, HealthRecord[]>>,
+    combined: Record<string, DailyMetrics>,
+  ): void {
+    const allSleepData: HealthRecord[] = [];
+
+    for (const date in groupedData) {
+      const sleepData =
+        groupedData[date]["HKCategoryTypeIdentifierSleepAnalysis"];
+      if (sleepData) {
+        allSleepData.push(...sleepData);
+      }
+    }
+
+    if (allSleepData.length > 0) {
+      const sleepSessions = this.groupSleepSessions(allSleepData);
+
+      for (const sessionDate in sleepSessions) {
+        const sessionData = sleepSessions[sessionDate];
+        const sleepMetrics = this.calculateSleepMetrics(sessionData);
+
+        if (sleepMetrics !== null) {
+          if (!combined[sessionDate]) {
+            combined[sessionDate] = { date: sessionDate, metrics: {} };
+          }
+          combined[sessionDate].metrics!["Sleep"] = sleepMetrics;
+        }
+      }
+    }
+  }
+}
+
+class DerivedMetricsProcessor implements MetricProcessor {
+  constructor(
+    private calculateHeight: (bodyMass: number, bmi: number) => number,
+    private calculateFFMI: (leanBodyMass: number, height: number) => number,
+    private calculateBCI: (ffmi: number, bodyFatPercentage: number) => number,
+    private roundToTwoDecimals: (value: number) => number,
+  ) {}
+
+  processMetrics(
+    groupedData: Record<string, Record<string, HealthRecord[]>>,
+    combined: Record<string, DailyMetrics>,
+  ): void {
+    for (const date in combined) {
+      const measurements = combined[date].metrics as Record<
+        string,
+        number | SleepMetrics
+      >;
+
+      if (
+        measurements["BodyMass"] &&
+        measurements["BodyMassIndex"] &&
+        measurements["LeanBodyMass"] &&
+        measurements["BodyFatPercentage"]
+      ) {
+        const bodyMass = measurements["BodyMass"] as number;
+        const bmi = measurements["BodyMassIndex"] as number;
+        const leanBodyMass = measurements["LeanBodyMass"] as number;
+        const bodyFatPercentage = measurements["BodyFatPercentage"] as number;
+
+        const height = this.calculateHeight(bodyMass, bmi);
+        const ffmi = this.calculateFFMI(leanBodyMass, height);
+        const bci = this.calculateBCI(
+          ffmi,
+          bodyFatPercentage / BODY_FAT_PERCENTAGE_CONVERSION,
+        );
+
+        measurements["FFMI"] = this.roundToTwoDecimals(ffmi);
+        measurements["BCI"] = this.roundToTwoDecimals(bci);
+      }
+    }
+  }
+}
+
 export class HealthProcessor extends BaseProcessor {
   private parsers: HealthRecordParser[];
+  private metricProcessors: MetricProcessor[];
 
   constructor() {
     super();
     this.parsers = this.initializeParsers();
+    this.metricProcessors = this.initializeMetricProcessors();
   }
 
   private initializeParsers(): HealthRecordParser[] {
@@ -162,6 +344,24 @@ export class HealthProcessor extends BaseProcessor {
     ];
   }
 
+  private initializeMetricProcessors(): MetricProcessor[] {
+    return [
+      new BodyCompositionProcessor(),
+      new HeartRateProcessor(this.calculateAverageHeartRate.bind(this)),
+      new StepCountProcessor(this.calculateTotalSteps.bind(this)),
+      new SleepMetricsProcessor(
+        this.groupSleepDataBySession.bind(this),
+        this.calculateSleepMetrics.bind(this),
+      ),
+      new DerivedMetricsProcessor(
+        this.calculateHeight.bind(this),
+        this.calculateFFMI.bind(this),
+        this.calculateBCI.bind(this),
+        this.roundToTwoDecimals.bind(this),
+      ),
+    ];
+  }
+
   private parseCSVRecord(fields: string[]): HealthRecord | null {
     if (fields.length < 8) return null;
 
@@ -175,6 +375,29 @@ export class HealthProcessor extends BaseProcessor {
     }
 
     return null;
+  }
+
+  private groupDataByDateAndType(
+    data: HealthRecord[],
+  ): Record<string, Record<string, HealthRecord[]>> {
+    const groupedByDate: Record<string, Record<string, HealthRecord[]>> = {};
+
+    for (const record of data) {
+      const date = record.date;
+      const type = record.type;
+
+      if (!groupedByDate[date]) {
+        groupedByDate[date] = {};
+      }
+
+      if (!groupedByDate[date][type]) {
+        groupedByDate[date][type] = [];
+      }
+
+      groupedByDate[date][type].push(record);
+    }
+
+    return groupedByDate;
   }
 
   /**
@@ -435,130 +658,11 @@ export class HealthProcessor extends BaseProcessor {
    * @returns Combined data as array of daily metrics
    */
   private createDailyMetrics(data: HealthRecord[]): DailyMetrics[] {
+    const groupedData = this.groupDataByDateAndType(data);
     const combined: Record<string, DailyMetrics> = {};
 
-    // Group data by date and type for processing
-    const groupedByDate: Record<string, Record<string, HealthRecord[]>> = {};
-
-    for (const record of data) {
-      const date = record.date;
-      const type = record.type;
-
-      if (!groupedByDate[date]) {
-        groupedByDate[date] = {};
-      }
-
-      if (!groupedByDate[date][type]) {
-        groupedByDate[date][type] = [];
-      }
-
-      groupedByDate[date][type].push(record);
-    }
-
-    // Process each date
-    for (const date in groupedByDate) {
-      const dateData = groupedByDate[date];
-      const metrics: Record<string, number | SleepMetrics> = {};
-
-      // Process body composition data (single measurements)
-      for (const type in dateData) {
-        const records = dateData[type];
-
-        if (
-          type === "HKQuantityTypeIdentifierBodyFatPercentage" ||
-          type === "HKQuantityTypeIdentifierBodyMass" ||
-          type === "HKQuantityTypeIdentifierBodyMassIndex" ||
-          type === "HKQuantityTypeIdentifierLeanBodyMass"
-        ) {
-          if (records.length > 0) {
-            const measurementType = type.replace(
-              "HKQuantityTypeIdentifier",
-              "",
-            );
-            metrics[measurementType] = records[0].value as number;
-          }
-        }
-      }
-
-      // Process heart rate data (calculate average)
-      if (dateData["HKQuantityTypeIdentifierHeartRate"]) {
-        const heartRateData = dateData["HKQuantityTypeIdentifierHeartRate"];
-        const avgHeartRate = this.calculateAverageHeartRate(heartRateData);
-
-        if (avgHeartRate !== null) {
-          metrics["HeartRate"] = avgHeartRate;
-        }
-      }
-
-      // Process step count data (calculate total)
-      if (dateData["HKQuantityTypeIdentifierStepCount"]) {
-        const stepData = dateData["HKQuantityTypeIdentifierStepCount"];
-        const totalSteps = this.calculateTotalSteps(stepData);
-
-        if (totalSteps !== null) {
-          metrics["StepCount"] = totalSteps;
-        }
-      }
-
-      combined[date] = {
-        date: date,
-        metrics: metrics,
-      };
-    }
-
-    // Process sleep data separately to handle cross-midnight sessions
-    const allSleepData = data.filter(
-      (record) => record.type === "HKCategoryTypeIdentifierSleepAnalysis",
-    );
-    if (allSleepData.length > 0) {
-      const sleepSessions = this.groupSleepDataBySession(allSleepData);
-
-      for (const sessionDate in sleepSessions) {
-        const sessionData = sleepSessions[sessionDate];
-        const sleepMetrics = this.calculateSleepMetrics(sessionData);
-
-        if (sleepMetrics !== null) {
-          if (!combined[sessionDate]) {
-            combined[sessionDate] = {
-              date: sessionDate,
-              metrics: {},
-            };
-          }
-
-          combined[sessionDate].metrics!["Sleep"] = sleepMetrics;
-        }
-      }
-    }
-
-    // Calculate FFMI and BCI for each date
-    for (const date in combined) {
-      const dailyMetrics = combined[date];
-      const measurements = dailyMetrics.metrics as Record<
-        string,
-        number | SleepMetrics
-      >;
-
-      if (
-        measurements["BodyMass"] &&
-        measurements["BodyMassIndex"] &&
-        measurements["LeanBodyMass"] &&
-        measurements["BodyFatPercentage"]
-      ) {
-        const bodyMass = measurements["BodyMass"] as number;
-        const bmi = measurements["BodyMassIndex"] as number;
-        const leanBodyMass = measurements["LeanBodyMass"] as number;
-        const bodyFatPercentage = measurements["BodyFatPercentage"] as number;
-
-        const height = this.calculateHeight(bodyMass, bmi);
-        const ffmi = this.calculateFFMI(leanBodyMass, height);
-        const bci = this.calculateBCI(
-          ffmi,
-          bodyFatPercentage / BODY_FAT_PERCENTAGE_CONVERSION,
-        );
-
-        measurements["FFMI"] = this.roundToTwoDecimals(ffmi);
-        measurements["BCI"] = this.roundToTwoDecimals(bci);
-      }
+    for (const processor of this.metricProcessors) {
+      processor.processMetrics(groupedData, combined);
     }
 
     return Object.values(combined);
