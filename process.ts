@@ -9,7 +9,7 @@ import { WeeklyMetrics } from "./types";
 /**
  * Main processing function that orchestrates all data processing
  */
-async function processAllData(): Promise<Record<string, unknown>> {
+function processAllData(): Record<string, unknown> {
   console.log("=== Starting Data Processing ===\n");
 
   try {
@@ -57,7 +57,7 @@ async function processAllData(): Promise<Record<string, unknown>> {
 /**
  * Process only training data
  */
-async function processTrainingOnly(): Promise<WeeklyMetrics[]> {
+function processTrainingOnly(): WeeklyMetrics[] {
   console.log("=== Processing Training Data Only ===\n");
 
   try {
@@ -80,7 +80,7 @@ async function processTrainingOnly(): Promise<WeeklyMetrics[]> {
 /**
  * Process only health data
  */
-async function processHealthOnly(): Promise<WeeklyMetrics[]> {
+function processHealthOnly(): WeeklyMetrics[] {
   console.log("=== Processing Health Data Only ===\n");
 
   try {
@@ -103,7 +103,7 @@ async function processHealthOnly(): Promise<WeeklyMetrics[]> {
 /**
  * Process only macros data
  */
-async function processMacrosOnly(): Promise<WeeklyMetrics[]> {
+function processMacrosOnly(): WeeklyMetrics[] {
   console.log("=== Processing Macros Data Only ===\n");
 
   try {
