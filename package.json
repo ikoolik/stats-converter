@@ -11,10 +11,7 @@
     "lint:fix": "eslint . --ext .ts,.js --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "process:all": "npm run build && npm start -- all",
-    "process:health": "npm run build && npm start -- health",
-    "process:macros": "npm run build && npm start -- macros",
-    "process:training": "npm run build && npm start -- training"
+    "process": "npm run build && npm start"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
