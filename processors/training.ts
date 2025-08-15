@@ -103,52 +103,6 @@ export class TrainingProcessor extends BaseProcessor {
   }
 
   /**
-   * Group training days by week
-   * @param days - Array of training days
-   * @returns Days grouped by week
-   */
-  private groupDaysByWeek(days: CalendarDay[]): Record<string, CalendarDay[]> {
-    const weeklyData: Record<string, CalendarDay[]> = {};
-
-    days.forEach((day) => {
-      const date = new Date(day.date);
-      const year = date.getFullYear();
-      const weekNumber = this.getWeekNumber(date);
-      const weekKey = `${year}-week-${weekNumber.toString().padStart(2, "0")}`;
-
-      if (!weeklyData[weekKey]) {
-        weeklyData[weekKey] = [];
-      }
-
-      weeklyData[weekKey].push(day);
-    });
-
-    return weeklyData;
-  }
-
-  /**
-   * Process a single week of training data
-   * @param weekDays - Array of training days for the week
-   * @param trainingData - Complete training data
-   * @returns Processed week data
-   */
-  private processWeek(
-    weekKey: string,
-    weekDays: CalendarDay[],
-    trainingData: TrainingData,
-  ): WeeklyMetrics {
-    const formattedDays = weekDays.map((day, index) => {
-      return this.formatTrainingDay(day, index, trainingData);
-    });
-
-    return {
-      week: weekKey,
-      totalDays: weekDays.length,
-      days: formattedDays,
-    };
-  }
-
-  /**
    * Format a single training day
    * @param day - Training day data
    * @param index - Day index
