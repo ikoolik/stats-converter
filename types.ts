@@ -4,7 +4,7 @@
 
 export interface DailyMetrics {
   date: string;
-  metrics?: Record<string, unknown>;
+  metrics: Record<string, unknown>;
   exercises?: unknown[];
   description?: string;
 }

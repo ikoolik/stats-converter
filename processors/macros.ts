@@ -60,7 +60,7 @@ export class MacrosProcessor extends BaseProcessor {
           const carbsGrams = carbsKcal / KCAL_PER_GRAM_CARBS;
           const proteinGrams = proteinKcal / KCAL_PER_GRAM_PROTEIN;
 
-          const date = this.extractDate(dateTime);
+          const date = dateTime.split(" ")[0];
 
           data.push({
             date: date,
