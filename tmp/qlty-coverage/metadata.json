@@ -1,0 +1,17 @@
+{
+  "buildId": "local-1755424031",
+  "ci": "unknown",
+  "branch": "refactor/health-processor-modularization",
+  "commitSha": "63a66ffbbbbfa4882bacc953e960bbc0f92d95ae",
+  "commitMessage": "Fix qlty code quality issues\n\n- Replace logical OR (||) with nullish coalescing (??) in sleep-calculator.ts\n- Add readonly modifiers to class constructor parameters in metric-strategies.ts\n- Remove unnecessary type assertions while maintaining TypeScript compatibility\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n",
+  "authorName": "Ivan Kulikov",
+  "authorEmail": "ikoolik@gmail.com",
+  "authorTime": "2025-08-17T09:46:19+00:00",
+  "committerName": "Ivan Kulikov",
+  "committerEmail": "ikoolik@gmail.com",
+  "commitTime": "2025-08-17T09:46:19+00:00",
+  "uploadedAt": "2025-08-17T09:47:11.169944+00:00",
+  "cliVersion": "0.565.0 macos-arm64 (a5bc79c 2025-08-13)",
+  "publishCommand": "qlty coverage publish coverage/lcov.info --override-commit-sha 63a66ffbbbbfa4882bacc953e960bbc0f92d95ae --override-branch refactor/health-processor-modularization --override-build-id local-1755424031",
+  "referenceType": "REFERENCE_TYPE_BRANCH"
+}
