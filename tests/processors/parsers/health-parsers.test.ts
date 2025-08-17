@@ -88,7 +88,11 @@ describe("Health Record Parsers", () => {
     });
 
     test("parse returns valid step record", () => {
-      const fields = createMockFields("HKQuantityTypeIdentifierStepCount", "12345", "count");
+      const fields = createMockFields(
+        "HKQuantityTypeIdentifierStepCount",
+        "12345",
+        "count",
+      );
 
       const result = parser.parse(fields);
 
@@ -123,7 +127,11 @@ describe("Health Record Parsers", () => {
     });
 
     test("parse converts body fat percentage to full percentage", () => {
-      const fields = createMockFields("HKQuantityTypeIdentifierBodyFatPercentage", "0.15", "%");
+      const fields = createMockFields(
+        "HKQuantityTypeIdentifierBodyFatPercentage",
+        "0.15",
+        "%",
+      );
 
       const result = parser.parse(fields);
 
@@ -131,7 +139,11 @@ describe("Health Record Parsers", () => {
     });
 
     test("parse handles regular body metrics", () => {
-      const fields = createMockFields("HKQuantityTypeIdentifierBodyMass", "75.5", "kg");
+      const fields = createMockFields(
+        "HKQuantityTypeIdentifierBodyMass",
+        "75.5",
+        "kg",
+      );
 
       const result = parser.parse(fields);
 
