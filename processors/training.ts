@@ -1,6 +1,20 @@
 import { BaseProcessor } from "./base";
 import { DailyMetrics, WeeklyMetrics } from "../types";
 
+/**
+ * Convert a UTC date string to Central European Time (CET/CEST)
+ * @param utcDateString - UTC date string (e.g., "2025-08-14T22:00:00Z")
+ * @returns Date string in YYYY-MM-DD format in CET/CEST timezone
+ */
+function convertToCentralEuropeanTime(utcDateString: string): string {
+  const date = new Date(utcDateString);
+
+  // Format directly in Central European Time (CET/CEST)
+  return date.toLocaleDateString("en-CA", {
+    timeZone: "Europe/Berlin",
+  });
+}
+
 interface TrainingData {
   trainings: Training[];
   calendarDays: CalendarDay[];
@@ -90,7 +104,7 @@ export class TrainingProcessor extends BaseProcessor {
       .filter((day) => day.trainingId)
       .map((day) => ({
         ...day,
-        date: new Date(day.date).toISOString().split("T")[0],
+        date: convertToCentralEuropeanTime(day.date),
       }))
       .sort((a, b) => {
         const dateA = new Date(a.date);

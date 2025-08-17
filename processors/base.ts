@@ -43,7 +43,9 @@ export class BaseProcessor {
     if (isNaN(date.getTime())) {
       throw new Error(`Invalid date format: ${timestamp}`);
     }
-    return date.toISOString().split("T")[0];
+    return date.toLocaleDateString("en-CA", {
+      timeZone: "Europe/Berlin",
+    });
   }
 
   /**
