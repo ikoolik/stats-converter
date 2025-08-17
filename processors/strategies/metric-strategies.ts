@@ -21,6 +21,9 @@ export class BodyCompositionProcessor implements MetricProcessor {
       if (!combined[date]) {
         combined[date] = { date, metrics: {} };
       }
+      if (!combined[date].metrics) {
+        combined[date].metrics = {};
+      }
 
       for (const type in dateData) {
         if (BODY_METRICS.includes(type)) {
@@ -41,9 +44,9 @@ export class BodyCompositionProcessor implements MetricProcessor {
 
 export class GenericQuantityProcessor implements MetricProcessor {
   constructor(
-    private healthKitIdentifier: string,
-    private metricName: string,
-    private calculateValue: (data: HealthRecord[]) => number | null,
+    private readonly healthKitIdentifier: string,
+    private readonly metricName: string,
+    private readonly calculateValue: (data: HealthRecord[]) => number | null,
   ) {}
 
   processMetrics(
@@ -59,6 +62,9 @@ export class GenericQuantityProcessor implements MetricProcessor {
         if (calculatedValue !== null) {
           if (!combined[date]) {
             combined[date] = { date, metrics: {} };
+          }
+          if (!combined[date].metrics) {
+            combined[date].metrics = {};
           }
           combined[date].metrics![this.metricName] = calculatedValue;
         }
@@ -95,6 +101,9 @@ export class SleepMetricsProcessor implements MetricProcessor {
           if (!combined[sessionDate]) {
             combined[sessionDate] = { date: sessionDate, metrics: {} };
           }
+          if (!combined[sessionDate].metrics) {
+            combined[sessionDate].metrics = {};
+          }
           combined[sessionDate].metrics!["Sleep"] = sleepMetrics;
         }
       }
@@ -104,10 +113,16 @@ export class SleepMetricsProcessor implements MetricProcessor {
 
 export class DerivedMetricsProcessor implements MetricProcessor {
   constructor(
-    private calculateHeight: (bodyMass: number, bmi: number) => number,
-    private calculateFFMI: (leanBodyMass: number, height: number) => number,
-    private calculateBCI: (ffmi: number, bodyFatPercentage: number) => number,
-    private roundToTwoDecimals: (value: number) => number,
+    private readonly calculateHeight: (bodyMass: number, bmi: number) => number,
+    private readonly calculateFFMI: (
+      leanBodyMass: number,
+      height: number,
+    ) => number,
+    private readonly calculateBCI: (
+      ffmi: number,
+      bodyFatPercentage: number,
+    ) => number,
+    private readonly roundToTwoDecimals: (value: number) => number,
   ) {}
 
   processMetrics(

@@ -25,7 +25,7 @@ export class SleepCalculator {
     let previousState: string | null = null;
 
     for (const record of sleepData) {
-      const duration = record.duration || 0;
+      const duration = record.duration ?? 0;
       const state = record.value as string;
 
       if (state in sleepMetrics) {
@@ -65,8 +65,8 @@ export class SleepCalculator {
 
     data.sort(
       (a, b) =>
-        new Date(a.startDate || "").getTime() -
-        new Date(b.startDate || "").getTime(),
+        new Date(a.startDate ?? "").getTime() -
+        new Date(b.startDate ?? "").getTime(),
     );
 
     let currentSessionStart: string | null = null;
