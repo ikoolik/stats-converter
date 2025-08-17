@@ -33,7 +33,7 @@ export class BodyCompositionProcessor implements MetricProcessor {
               "HKQuantityTypeIdentifier",
               "",
             );
-            combined[date].metrics![measurementType] = records[0]
+            combined[date].metrics[measurementType] = records[0]
               .value as number;
           }
         }
@@ -66,7 +66,7 @@ export class GenericQuantityProcessor implements MetricProcessor {
           if (!combined[date].metrics) {
             combined[date].metrics = {};
           }
-          combined[date].metrics![this.metricName] = calculatedValue;
+          combined[date].metrics[this.metricName] = calculatedValue;
         }
       }
     }
@@ -78,6 +78,16 @@ export class SleepMetricsProcessor implements MetricProcessor {
     groupedData: Record<string, Record<string, HealthRecord[]>>,
     combined: Record<string, DailyMetrics>,
   ): void {
+    const allSleepData = this.collectAllSleepData(groupedData);
+
+    if (allSleepData.length > 0) {
+      this.processSleepSessions(allSleepData, combined);
+    }
+  }
+
+  private collectAllSleepData(
+    groupedData: Record<string, Record<string, HealthRecord[]>>,
+  ): HealthRecord[] {
     const allSleepData: HealthRecord[] = [];
 
     for (const date in groupedData) {
@@ -88,25 +98,33 @@ export class SleepMetricsProcessor implements MetricProcessor {
       }
     }
 
-    if (allSleepData.length > 0) {
-      const sleepSessions =
-        SleepCalculator.groupSleepDataBySession(allSleepData);
+    return allSleepData;
+  }
 
-      for (const sessionDate in sleepSessions) {
-        const sessionData = sleepSessions[sessionDate];
-        console.log("calculating sleep for ", sessionDate);
-        const sleepMetrics = SleepCalculator.calculateSleepMetrics(sessionData);
+  private processSleepSessions(
+    allSleepData: HealthRecord[],
+    combined: Record<string, DailyMetrics>,
+  ): void {
+    const sleepSessions = SleepCalculator.groupSleepDataBySession(allSleepData);
 
-        if (sleepMetrics !== null) {
-          if (!combined[sessionDate]) {
-            combined[sessionDate] = { date: sessionDate, metrics: {} };
-          }
-          if (!combined[sessionDate].metrics) {
-            combined[sessionDate].metrics = {};
-          }
-          combined[sessionDate].metrics!["Sleep"] = sleepMetrics;
-        }
+    for (const sessionDate in sleepSessions) {
+      const sessionData = sleepSessions[sessionDate];
+      console.log("calculating sleep for ", sessionDate);
+      const sleepMetrics = SleepCalculator.calculateSleepMetrics(sessionData);
+
+      if (sleepMetrics !== null) {
+        this.ensureDailyMetricsExists(combined, sessionDate);
+        combined[sessionDate].metrics["Sleep"] = sleepMetrics;
       }
+    }
+  }
+
+  private ensureDailyMetricsExists(
+    combined: Record<string, DailyMetrics>,
+    sessionDate: string,
+  ): void {
+    if (!combined[sessionDate]) {
+      combined[sessionDate] = { date: sessionDate, metrics: {} };
     }
   }
 }

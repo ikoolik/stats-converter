@@ -140,6 +140,7 @@ export class TrainingProcessor extends BaseProcessor {
 
     return {
       date: day.date,
+      metrics: {},
       ...(description && { description }),
       exercises: formattedExercises,
     };
