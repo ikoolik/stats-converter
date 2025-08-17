@@ -9,6 +9,18 @@ describe("Health Record Parsers", () => {
   const mockRoundToTwoDecimals = (value: number) =>
     Math.round(value * 100) / 100;
 
+  const createMockFields = (type: string, value: string, unit = "unit") => [
+    type,
+    "source",
+    "meta",
+    "date",
+    "time",
+    "2025-08-17T10:00:00Z",
+    "end",
+    unit,
+    value,
+  ];
+
   describe("SleepAnalysisParser", () => {
     let parser: SleepAnalysisParser;
 
@@ -76,17 +88,7 @@ describe("Health Record Parsers", () => {
     });
 
     test("parse returns valid step record", () => {
-      const fields = [
-        "HKQuantityTypeIdentifierStepCount",
-        "source",
-        "unit",
-        "date",
-        "time",
-        "2025-08-17T10:00:00Z",
-        "end",
-        "count",
-        "12345",
-      ];
+      const fields = createMockFields("HKQuantityTypeIdentifierStepCount", "12345", "count");
 
       const result = parser.parse(fields);
 
@@ -121,17 +123,7 @@ describe("Health Record Parsers", () => {
     });
 
     test("parse converts body fat percentage to full percentage", () => {
-      const fields = [
-        "HKQuantityTypeIdentifierBodyFatPercentage",
-        "source",
-        "unit",
-        "date",
-        "time",
-        "2025-08-17T10:00:00Z",
-        "end",
-        "%",
-        "0.15",
-      ];
+      const fields = createMockFields("HKQuantityTypeIdentifierBodyFatPercentage", "0.15", "%");
 
       const result = parser.parse(fields);
 
@@ -139,17 +131,7 @@ describe("Health Record Parsers", () => {
     });
 
     test("parse handles regular body metrics", () => {
-      const fields = [
-        "HKQuantityTypeIdentifierBodyMass",
-        "source",
-        "unit",
-        "date",
-        "time",
-        "2025-08-17T10:00:00Z",
-        "end",
-        "kg",
-        "75.5",
-      ];
+      const fields = createMockFields("HKQuantityTypeIdentifierBodyMass", "75.5", "kg");
 
       const result = parser.parse(fields);
 
