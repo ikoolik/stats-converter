@@ -103,6 +103,17 @@ export class BaseProcessor {
   }
 
   /**
+   * Create summary for the data (to be overridden by subclasses)
+   * @param _dailyMetrics - Array of daily metrics
+   * @returns Summary data
+   */
+  protected createSummary(
+    _dailyMetrics: DailyMetrics[],
+  ): string | Record<string, unknown> {
+    return "Default summary placeholder";
+  }
+
+  /**
    * Group daily metrics by week
    * @param dailyMetrics - Array of daily metrics
    * @returns Array of weekly metrics
@@ -131,6 +142,7 @@ export class BaseProcessor {
       week: weekKey,
       totalDays: weeklyData[weekKey].length,
       days: weeklyData[weekKey],
+      summary: this.createSummary(weeklyData[weekKey]),
     }));
   }
 

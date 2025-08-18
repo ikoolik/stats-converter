@@ -22,6 +22,7 @@ import {
   calculateAverageHeartRate,
   calculateTotalSteps,
 } from "./utils/health-calculations";
+import { calculateHealthSummary } from "./utils/health-summary";
 
 export class HealthProcessor extends BaseProcessor {
   private parsers: HealthRecordParser[];
@@ -187,6 +188,17 @@ export class HealthProcessor extends BaseProcessor {
     }
 
     return Object.values(combined);
+  }
+
+  /**
+   * Create summary for health data
+   * @param dailyMetrics - Array of daily metrics
+   * @returns Summary object with averaged metrics
+   */
+  protected createSummary(
+    dailyMetrics: DailyMetrics[],
+  ): string | Record<string, unknown> {
+    return calculateHealthSummary(dailyMetrics);
   }
 
   /**

@@ -1,5 +1,6 @@
 import { BaseProcessor } from "./base";
 import { DailyMetrics, WeeklyMetrics } from "../types";
+import { calculateTrainingSummary } from "./utils/training-summary";
 
 /**
  * Convert a UTC date string to Central European Time (CET/CEST)
@@ -240,6 +241,17 @@ export class TrainingProcessor extends BaseProcessor {
       weightType: exercise.isWeightDoubled ? "dumbbell weight" : "total weight",
       sets: sets,
     };
+  }
+
+  /**
+   * Create summary for training data
+   * @param dailyMetrics - Array of daily metrics
+   * @returns Summary object with training statistics
+   */
+  protected createSummary(
+    dailyMetrics: DailyMetrics[],
+  ): string | Record<string, unknown> {
+    return calculateTrainingSummary(dailyMetrics);
   }
 
   /**
