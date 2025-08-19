@@ -1,6 +1,7 @@
 import * as path from "path";
 import { BaseProcessor } from "./base";
 import { DailyMetrics, WeeklyMetrics } from "../types";
+import { calculateMacrosSummary } from "./utils/macros-summary";
 
 // Constants
 const KCAL_PER_GRAM_FAT = 9;
@@ -80,6 +81,17 @@ export class MacrosProcessor extends BaseProcessor {
         `Failed to parse chart.csv: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
+  }
+
+  /**
+   * Create summary for macros data
+   * @param dailyMetrics - Array of daily metrics
+   * @returns Summary object with averaged metrics
+   */
+  protected createSummary(
+    dailyMetrics: DailyMetrics[],
+  ): string | Record<string, unknown> {
+    return calculateMacrosSummary(dailyMetrics);
   }
 
   /**

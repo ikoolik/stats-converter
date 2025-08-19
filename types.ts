@@ -13,4 +13,5 @@ export interface WeeklyMetrics {
   week: string;
   totalDays: number;
   days: DailyMetrics[];
+  summary: string | Record<string, unknown>;
 }
