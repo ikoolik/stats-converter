@@ -47,10 +47,10 @@ node dist/process.js [all|health|macros|training]
 The application follows a modular processor pattern with a shared base class:
 
 - **BaseProcessor** (`processors/base.ts`): Provides shared utilities for file handling, CSV parsing, date manipulation, and weekly grouping
-- **Specialized Processors**: Each data type has its own processor extending BaseProcessor
-  - **HealthProcessor** (`processors/health.ts`): Processes Apple HealthKit CSV exports with complex sleep analysis and body composition calculations
-  - **TrainingProcessor** (`processors/training.ts`): Processes Gym Tracker backup files (JSON format)
-  - **MacrosProcessor** (`processors/macros.ts`): Processes Cronometer chart.csv nutrition data
+- **Specialized Processors**: Each data type has its own processor extending BaseProcessor, organized by domain:
+  - **HealthProcessor** (`processors/health/index.ts`): Processes Apple HealthKit CSV exports with complex sleep analysis and body composition calculations
+  - **TrainingProcessor** (`processors/training/index.ts`): Processes Gym Tracker backup files (JSON format)  
+  - **MacrosProcessor** (`processors/macros/index.ts`): Processes Cronometer chart.csv nutrition data
 
 ### Data Flow
 
@@ -67,6 +67,29 @@ The application follows a modular processor pattern with a shared base class:
 - **Weekly Aggregation**: ISO week-based grouping with proper year boundary handling
 
 ## File Structure and Data Sources
+
+### Processor Organization
+
+The codebase is organized by domain (data type) rather than technical concerns:
+
+```
+processors/
+├── base.ts                    # Shared base class
+├── health/                    # Health data processing
+│   ├── index.ts              # Main HealthProcessor
+│   ├── parsers.ts            # CSV parsing logic
+│   ├── strategies.ts         # Metric processing strategies
+│   ├── calculations.ts       # Health calculations
+│   ├── constants.ts          # Health-specific constants
+│   ├── sleep-calculator.ts   # Sleep analysis logic
+│   └── summary.ts            # Summary calculations
+├── training/                  # Training data processing
+│   ├── index.ts              # Main TrainingProcessor
+│   └── summary.ts            # Training summary calculations
+└── macros/                    # Nutrition data processing
+    ├── index.ts              # Main MacrosProcessor
+    └── summary.ts            # Macros summary calculations
+```
 
 ### Expected Input Files (`sources/`)
 
@@ -95,6 +118,31 @@ The application follows a modular processor pattern with a shared base class:
 - Strict mode enabled with comprehensive type checking
 - Source maps and declarations generated
 - Compiles `process.ts` and `processors/**/*.ts` to `dist/`
+
+### Code Quality Guidelines
+
+**Immutability and Safety:**
+- Mark private fields as `readonly` if they're only assigned in the constructor
+- Prefer nullish coalescing (`??`) over logical OR (`||`) for default values
+- Use optional chaining (`?.`) instead of multiple `&&` checks for safer property access
+
+**TypeScript Best Practices:**
+- Use proper type guards instead of unnecessary type assertions
+- Prefer `filter((item): item is Type => condition)` for type narrowing
+- Avoid `!` assertions unless absolutely necessary
+
+**Examples:**
+```typescript
+// Good
+private readonly sourceFile: string;
+const name = training.name ?? "";
+if (exerciseSet?.approachIds?.length) { ... }
+
+// Avoid
+private sourceFile: string; // if never reassigned
+const name = training.name || "";
+if (exerciseSet && exerciseSet.approachIds && exerciseSet.approachIds.length) { ... }
+```
 
 ## Development Notes
 
