@@ -1,193 +1,83 @@
 import * as path from "path";
 import { BaseProcessor } from "../base";
 import { DailyMetrics, WeeklyMetrics } from "../../types";
-import {
-  HealthRecord,
-  HealthRecordParser,
-  SleepAnalysisParser,
-  StepCountParser,
-  BodyMetricsParser,
-} from "./parsers";
-import {
-  MetricProcessor,
-  BodyCompositionProcessor,
-  GenericQuantityProcessor,
-  SleepMetricsProcessor,
-  DerivedMetricsProcessor,
-} from "./strategies";
-import {
-  calculateHeight,
-  calculateFFMI,
-  calculateBCI,
-  calculateAverageHeartRate,
-  calculateTotalSteps,
-} from "./calculations";
+import { FileParser } from "./parsers/file-parser";
+import { HealthCSVParser } from "./parsers/health-csv-parser";
+import { MetricsMerger } from "./parsers/metrics-merger";
 import { calculateHealthSummary } from "./summary";
 
 export class HealthProcessor extends BaseProcessor {
-  private readonly parsers: HealthRecordParser[];
-  private readonly metricProcessors: MetricProcessor[];
+  private readonly fileParsers: FileParser[];
 
   constructor() {
     super();
-    this.parsers = this.initializeParsers();
-    this.metricProcessors = this.initializeMetricProcessors();
+    this.fileParsers = this.initializeFileParsers();
   }
 
-  private initializeParsers(): HealthRecordParser[] {
+  private initializeFileParsers(): FileParser[] {
     return [
-      new SleepAnalysisParser(
-        (dateString: string) => this.extractDate(dateString),
-        (value: number) => this.roundToTwoDecimals(value),
-      ),
-      new StepCountParser(
-        (dateString: string) => this.extractDate(dateString),
-        (value: number) => this.roundToTwoDecimals(value),
-      ),
-      new BodyMetricsParser(
-        (dateString: string) => this.extractDate(dateString),
-        (value: number) => this.roundToTwoDecimals(value),
-      ),
+      new HealthCSVParser(),
+      // Future parsers can be added here (e.g., JSON, XML, other CSV formats)
     ];
   }
 
-  private initializeMetricProcessors(): MetricProcessor[] {
-    return [
-      new BodyCompositionProcessor(),
-      new GenericQuantityProcessor(
-        "HKQuantityTypeIdentifierHeartRate",
-        "HeartRate",
-        (data) =>
-          calculateAverageHeartRate(data, this.roundToTwoDecimals.bind(this)),
-      ),
-      new GenericQuantityProcessor(
-        "HKQuantityTypeIdentifierStepCount",
-        "StepCount",
-        calculateTotalSteps,
-      ),
-      new SleepMetricsProcessor(),
-      new DerivedMetricsProcessor(
-        calculateHeight,
-        calculateFFMI,
-        calculateBCI,
-        this.roundToTwoDecimals.bind(this),
-      ),
-    ];
-  }
+  /**
+   * Get all supported filenames from all parsers
+   * @returns Array of file paths to process
+   */
+  private getSupportedFiles(): string[] {
+    const allFiles: string[] = [];
 
-  private parseCSVRecord(fields: string[]): HealthRecord | null {
-    if (fields.length < 8) return null;
-
-    const type = fields[0];
-    const sourceName = fields[1];
-
-    for (const parser of this.parsers) {
-      if (parser.canParse(type, sourceName)) {
-        return parser.parse(fields);
-      }
+    for (const parser of this.fileParsers) {
+      const supportedFiles = parser.getSupportedFiles(this.sourcesDir);
+      allFiles.push(...supportedFiles);
     }
 
-    return null;
-  }
-
-  private groupDataByDateAndType(
-    data: HealthRecord[],
-  ): Record<string, Record<string, HealthRecord[]>> {
-    const groupedByDate: Record<string, Record<string, HealthRecord[]>> = {};
-
-    for (const record of data) {
-      const date = record.date;
-      const type = record.type;
-
-      if (!groupedByDate[date]) {
-        groupedByDate[date] = {};
-      }
-
-      if (!groupedByDate[date][type]) {
-        groupedByDate[date][type] = [];
-      }
-
-      groupedByDate[date][type].push(record);
-    }
-
-    return groupedByDate;
-  }
-
-  private findHealthDataFiles(): string[] {
-    return this.findFilesByExtension(".csv", "HK");
+    return allFiles;
   }
 
   /**
-   * Read and parse CSV file from "Health Export CSV" app
-   * @param filePath - Path to the CSV file
-   * @returns Parsed data records
+   * Process all supported files using dedicated parsers to get DailyMetrics
+   * @returns Array of DailyMetrics arrays from different parsers
    */
-  private parseHKCSV(filePath: string): HealthRecord[] {
-    const content = this.loadTextFile(filePath);
-    const lines = content.split("\n");
-    const dataLines = lines.slice(2); // Skip sep=, and header
-    const data: HealthRecord[] = [];
+  private processAllFiles(): DailyMetrics[][] {
+    const metricsSets: DailyMetrics[][] = [];
 
-    for (const line of dataLines) {
-      if (line.trim() === "") continue;
+    for (const parser of this.fileParsers) {
+      console.log(`Processing files with ${parser.getName()} parser...`);
+      const supportedFiles = parser.getSupportedFiles(this.sourcesDir);
 
-      const fields = this.parseCSVLine(line);
-      const record = this.parseCSVRecord(fields);
-
-      if (record) {
-        data.push(record);
+      if (supportedFiles.length === 0) {
+        console.log(`No supported files found for ${parser.getName()} parser`);
+        continue;
       }
-    }
 
-    return data;
-  }
+      const parserMetrics: DailyMetrics[] = [];
 
-  /**
-   * Load and parse all health data files
-   * @returns All parsed health data records
-   */
-  private loadHealthData(): HealthRecord[] {
-    try {
-      const csvFiles = this.findHealthDataFiles();
-      const allData: HealthRecord[] = [];
-
-      for (const filePath of csvFiles) {
+      for (const filePath of supportedFiles) {
         const fileName = path.basename(filePath);
-        console.log(`Reading file: ${fileName}`);
+        console.log(`  Reading file: ${fileName}`);
 
         try {
-          const fileData = this.parseHKCSV(filePath);
-          allData.push(...fileData);
+          const fileMetrics = parser.parseFile(filePath);
+          parserMetrics.push(...fileMetrics);
         } catch (error) {
           console.error(
-            `Error reading file ${fileName}:`,
+            `  Error reading file ${fileName}:`,
             error instanceof Error ? error.message : String(error),
           );
         }
       }
 
-      return allData;
-    } catch (error) {
-      throw new Error(
-        `Failed to load health data: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-
-  /**
-   * Combine health data by date
-   * @param data - Array of health data records
-   * @returns Combined data as array of daily metrics
-   */
-  private createDailyMetrics(data: HealthRecord[]): DailyMetrics[] {
-    const groupedData = this.groupDataByDateAndType(data);
-    const combined: Record<string, DailyMetrics> = {};
-
-    for (const processor of this.metricProcessors) {
-      processor.processMetrics(groupedData, combined);
+      if (parserMetrics.length > 0) {
+        metricsSets.push(parserMetrics);
+        console.log(
+          `${parser.getName()} parser processed ${parserMetrics.length} daily metrics`,
+        );
+      }
     }
 
-    return Object.values(combined);
+    return metricsSets;
   }
 
   /**
@@ -207,14 +97,25 @@ export class HealthProcessor extends BaseProcessor {
   public process(): WeeklyMetrics[] {
     try {
       console.log("Loading health data...");
-      const allData = this.loadHealthData();
-      console.log(`Total records read: ${allData.length}`);
 
-      console.log("Processing health data...");
-      const dailyMetrics = this.createDailyMetrics(allData);
+      // 1. Get all supported filenames from parsers
+      const supportedFiles = this.getSupportedFiles();
+      console.log(`Found ${supportedFiles.length} supported files`);
 
+      // 2. Process each file with dedicated parsers to get DailyMetrics
+      const metricsSets = this.processAllFiles();
+      console.log(
+        `Processed data with ${metricsSets.length} different parsers`,
+      );
+
+      // 3. Flat merge DailyMetrics from different parsers
+      console.log("Merging daily metrics from all parsers...");
+      const unifiedDailyMetrics = MetricsMerger.flatMerge(metricsSets);
+      console.log(`Unified ${unifiedDailyMetrics.length} daily metrics`);
+
+      // 4. Pass unified DailyMetrics to createWeeklyMetrics
       console.log("Grouping by week...");
-      const weeklyMetrics = this.createWeeklyMetrics(dailyMetrics);
+      const weeklyMetrics = this.createWeeklyMetrics(unifiedDailyMetrics);
 
       console.log("Saving weekly files...");
       this.saveWeeklyFiles(weeklyMetrics, "health");
