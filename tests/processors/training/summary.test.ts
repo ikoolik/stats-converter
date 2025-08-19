@@ -1,4 +1,4 @@
-import { calculateTrainingSummary } from "../../../processors/utils/training-summary";
+import { calculateTrainingSummary } from "../../../processors/training/summary";
 import { DailyMetrics } from "../../../types";
 
 describe("Training Summary Calculation", () => {

@@ -2,7 +2,7 @@ import {
   SleepAnalysisParser,
   StepCountParser,
   BodyMetricsParser,
-} from "../../../processors/parsers/health-parsers";
+} from "../../../processors/health/parsers";
 
 describe("Health Record Parsers", () => {
   const mockExtractDate = (dateString: string) => dateString.split("T")[0];

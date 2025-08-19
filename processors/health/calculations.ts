@@ -1,4 +1,4 @@
-import { HealthRecord } from "../parsers/health-parsers";
+import { HealthRecord } from "./parsers";
 
 export function calculateHeight(bodyMass: number, bmi: number): number {
   return Math.sqrt(bodyMass / bmi);

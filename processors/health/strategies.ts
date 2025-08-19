@@ -1,7 +1,7 @@
 import { DailyMetrics } from "../../types";
-import { BODY_METRICS } from "../constants/health-constants";
-import { HealthRecord } from "../parsers/health-parsers";
-import { SleepCalculator, SleepMetrics } from "../calculators/sleep-calculator";
+import { BODY_METRICS } from "./constants";
+import { HealthRecord } from "./parsers";
+import { SleepCalculator, SleepMetrics } from "./sleep-calculator";
 
 export interface MetricProcessor {
   processMetrics(

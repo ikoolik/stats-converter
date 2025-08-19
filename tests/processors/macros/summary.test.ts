@@ -1,4 +1,4 @@
-import { calculateMacrosSummary } from "../../../processors/utils/macros-summary";
+import { calculateMacrosSummary } from "../../../processors/macros/summary";
 import { DailyMetrics } from "../../../types";
 
 describe("Macros Summary Calculation", () => {

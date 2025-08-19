@@ -2,7 +2,7 @@ import {
   BodyCompositionProcessor,
   GenericQuantityProcessor,
   DerivedMetricsProcessor,
-} from "../../../processors/strategies/metric-strategies";
+} from "../../../processors/health/strategies";
 import { DailyMetrics } from "../../../types";
 
 describe("Metric Strategies", () => {

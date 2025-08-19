@@ -4,8 +4,8 @@ import {
   calculateBCI,
   calculateAverageHeartRate,
   calculateTotalSteps,
-} from "../../../processors/utils/health-calculations";
-import { HealthRecord } from "../../../processors/parsers/health-parsers";
+} from "../../../processors/health/calculations";
+import { HealthRecord } from "../../../processors/health/parsers";
 
 describe("Health Calculations", () => {
   describe("calculateHeight", () => {

@@ -1,6 +1,6 @@
-import { BaseProcessor } from "./base";
-import { DailyMetrics, WeeklyMetrics } from "../types";
-import { calculateTrainingSummary } from "./utils/training-summary";
+import { BaseProcessor } from "../base";
+import { DailyMetrics, WeeklyMetrics } from "../../types";
+import { calculateTrainingSummary } from "./summary";
 
 /**
  * Convert a UTC date string to Central European Time (CET/CEST)
@@ -66,7 +66,7 @@ interface FormattedExerciseSet {
 }
 
 export class TrainingProcessor extends BaseProcessor {
-  private sourceFile: string;
+  private readonly sourceFile: string;
 
   constructor() {
     super();
@@ -157,16 +157,16 @@ export class TrainingProcessor extends BaseProcessor {
 
     return training.exerciseSetIds
       .map((setId) => this.findExerciseSetById(setId, trainingData))
-      .filter((exerciseSet) => exerciseSet !== null)
+      .filter((exerciseSet): exerciseSet is ExerciseSet => exerciseSet !== null)
       .map((exerciseSet) => {
         const exercise = this.findExerciseById(
-          exerciseSet!.exerciseId,
+          exerciseSet.exerciseId,
           trainingData,
         );
         return exercise
           ? this.formatExercise(
               exercise,
-              exerciseSet!,
+              exerciseSet,
               trainingData.exerciseSetApproaches,
             )
           : null;
@@ -193,8 +193,8 @@ export class TrainingProcessor extends BaseProcessor {
   ): string | undefined {
     if (!training) return undefined;
 
-    const name = training.name || "";
-    const desc = training.trainingDescription || "";
+    const name = training.name ?? "";
+    const desc = training.trainingDescription ?? "";
 
     if (name && desc) {
       return `${name} | ${desc}`;
@@ -202,7 +202,7 @@ export class TrainingProcessor extends BaseProcessor {
     if (name) {
       return name === "Unnamed Training" ? undefined : name;
     }
-    return desc || undefined;
+    return desc ?? undefined;
   }
 
   /**
@@ -220,17 +220,13 @@ export class TrainingProcessor extends BaseProcessor {
     const sets: FormattedExerciseSet[] = [];
 
     // Build sets array with reps and weight
-    if (
-      exerciseSet &&
-      exerciseSet.approachIds &&
-      exerciseSet.approachIds.length > 0
-    ) {
+    if (exerciseSet?.approachIds?.length) {
       exerciseSet.approachIds.forEach((approachId) => {
         const approach = approaches.find((a) => a.id === approachId);
         if (approach) {
           sets.push({
-            reps: approach.repeats || 0,
-            weight: approach.weight || 0,
+            reps: approach.repeats ?? 0,
+            weight: approach.weight ?? 0,
           });
         }
       });

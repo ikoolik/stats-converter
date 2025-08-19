@@ -1,4 +1,4 @@
-import { calculateHealthSummary } from "../../../processors/utils/health-summary";
+import { calculateHealthSummary } from "../../../processors/health/summary";
 import { DailyMetrics } from "../../../types";
 
 describe("Health Summary Calculation", () => {

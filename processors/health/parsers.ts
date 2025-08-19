@@ -1,4 +1,4 @@
-import { MILLISECONDS_PER_MINUTE } from "../constants/health-constants";
+import { MILLISECONDS_PER_MINUTE } from "./constants";
 
 export interface HealthRecord {
   date: string;

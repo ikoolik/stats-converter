@@ -1,32 +1,32 @@
 import * as path from "path";
-import { BaseProcessor } from "./base";
-import { DailyMetrics, WeeklyMetrics } from "../types";
+import { BaseProcessor } from "../base";
+import { DailyMetrics, WeeklyMetrics } from "../../types";
 import {
   HealthRecord,
   HealthRecordParser,
   SleepAnalysisParser,
   StepCountParser,
   BodyMetricsParser,
-} from "./parsers/health-parsers";
+} from "./parsers";
 import {
   MetricProcessor,
   BodyCompositionProcessor,
   GenericQuantityProcessor,
   SleepMetricsProcessor,
   DerivedMetricsProcessor,
-} from "./strategies/metric-strategies";
+} from "./strategies";
 import {
   calculateHeight,
   calculateFFMI,
   calculateBCI,
   calculateAverageHeartRate,
   calculateTotalSteps,
-} from "./utils/health-calculations";
-import { calculateHealthSummary } from "./utils/health-summary";
+} from "./calculations";
+import { calculateHealthSummary } from "./summary";
 
 export class HealthProcessor extends BaseProcessor {
-  private parsers: HealthRecordParser[];
-  private metricProcessors: MetricProcessor[];
+  private readonly parsers: HealthRecordParser[];
+  private readonly metricProcessors: MetricProcessor[];
 
   constructor() {
     super();

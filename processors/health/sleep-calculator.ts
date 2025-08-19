@@ -1,5 +1,5 @@
-import { ASLEEP_STATES, MINUTES_PER_HOUR } from "../constants/health-constants";
-import { HealthRecord } from "../parsers/health-parsers";
+import { ASLEEP_STATES, MINUTES_PER_HOUR } from "./constants";
+import { HealthRecord } from "./parsers";
 
 export interface SleepMetrics {
   Core: string;

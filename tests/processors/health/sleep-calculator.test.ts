@@ -1,5 +1,5 @@
-import { SleepCalculator } from "../../../processors/calculators/sleep-calculator";
-import { HealthRecord } from "../../../processors/parsers/health-parsers";
+import { SleepCalculator } from "../../../processors/health/sleep-calculator";
+import { HealthRecord } from "../../../processors/health/parsers";
 
 describe("SleepCalculator", () => {
   describe("calculateSleepMetrics", () => {

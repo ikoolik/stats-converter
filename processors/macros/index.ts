@@ -1,7 +1,7 @@
 import * as path from "path";
-import { BaseProcessor } from "./base";
-import { DailyMetrics, WeeklyMetrics } from "../types";
-import { calculateMacrosSummary } from "./utils/macros-summary";
+import { BaseProcessor } from "../base";
+import { DailyMetrics, WeeklyMetrics } from "../../types";
+import { calculateMacrosSummary } from "./summary";
 
 // Constants
 const KCAL_PER_GRAM_FAT = 9;
@@ -9,7 +9,7 @@ const KCAL_PER_GRAM_CARBS = 4;
 const KCAL_PER_GRAM_PROTEIN = 4;
 
 export class MacrosProcessor extends BaseProcessor {
-  private sourceFile: string;
+  private readonly sourceFile: string;
 
   constructor() {
     super();
