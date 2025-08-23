@@ -18,35 +18,9 @@ export class MetricsMerger {
         const date = dailyMetrics.date;
 
         if (!mergedByDate[date]) {
-          // First time seeing this date - initialize with current metrics
-          mergedByDate[date] = {
-            date,
-            metrics: { ...dailyMetrics.metrics },
-            exercises: dailyMetrics.exercises
-              ? [...dailyMetrics.exercises]
-              : undefined,
-            description: dailyMetrics.description,
-          };
+          mergedByDate[date] = this.initializeDailyMetrics(dailyMetrics);
         } else {
-          // Date already exists - merge metrics
-          const existing = mergedByDate[date];
-
-          // Merge metrics objects
-          existing.metrics = { ...existing.metrics, ...dailyMetrics.metrics };
-
-          // Merge exercises if present
-          if (dailyMetrics.exercises) {
-            if (existing.exercises) {
-              existing.exercises.push(...dailyMetrics.exercises);
-            } else {
-              existing.exercises = [...dailyMetrics.exercises];
-            }
-          }
-
-          // Update description (later parsers can override)
-          if (dailyMetrics.description) {
-            existing.description = dailyMetrics.description;
-          }
+          this.mergeExistingMetrics(mergedByDate[date], dailyMetrics);
         }
       }
     }
@@ -55,5 +29,47 @@ export class MetricsMerger {
     return Object.values(mergedByDate).sort((a, b) =>
       a.date.localeCompare(b.date),
     );
+  }
+
+  private static initializeDailyMetrics(
+    dailyMetrics: DailyMetrics,
+  ): DailyMetrics {
+    return {
+      date: dailyMetrics.date,
+      metrics: { ...dailyMetrics.metrics },
+      exercises: dailyMetrics.exercises
+        ? [...dailyMetrics.exercises]
+        : undefined,
+      description: dailyMetrics.description,
+    };
+  }
+
+  private static mergeExistingMetrics(
+    existing: DailyMetrics,
+    newMetrics: DailyMetrics,
+  ): void {
+    // Merge metrics objects
+    existing.metrics = { ...existing.metrics, ...newMetrics.metrics };
+
+    // Merge exercises if present
+    this.mergeExercises(existing, newMetrics);
+
+    // Update description (later parsers can override)
+    if (newMetrics.description) {
+      existing.description = newMetrics.description;
+    }
+  }
+
+  private static mergeExercises(
+    existing: DailyMetrics,
+    newMetrics: DailyMetrics,
+  ): void {
+    if (!newMetrics.exercises) return;
+
+    if (existing.exercises) {
+      existing.exercises.push(...newMetrics.exercises);
+    } else {
+      existing.exercises = [...newMetrics.exercises];
+    }
   }
 }

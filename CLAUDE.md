@@ -46,11 +46,16 @@ node dist/process.js [all|health|macros|training]
 
 The application follows a modular processor pattern with a shared base class:
 
-- **BaseProcessor** (`processors/base.ts`): Provides shared utilities for file handling, CSV parsing, date manipulation, and weekly grouping
-- **Specialized Processors**: Each data type has its own processor extending BaseProcessor, organized by domain:
-  - **HealthProcessor** (`processors/health/index.ts`): Processes Apple HealthKit CSV exports with complex sleep analysis and body composition calculations
-  - **TrainingProcessor** (`processors/training/index.ts`): Processes Gym Tracker backup files (JSON format)
-  - **MacrosProcessor** (`processors/macros/index.ts`): Processes Cronometer chart.csv nutrition data
+- **BaseProcessor** (`processors/base.ts`): Provides shared utilities for file handling,
+  CSV parsing, date manipulation, and weekly grouping
+- **Specialized Processors**: Each data type has its own processor extending
+  BaseProcessor, organized by domain:
+  - **HealthProcessor** (`processors/health/index.ts`): Processes Apple HealthKit
+    CSV exports with complex sleep analysis and body composition calculations
+  - **TrainingProcessor** (`processors/training/index.ts`): Processes Gym Tracker
+    backup files (JSON format)
+  - **MacrosProcessor** (`processors/macros/index.ts`): Processes Cronometer
+    chart.csv nutrition data
 
 ### Data Flow
 
@@ -72,7 +77,7 @@ The application follows a modular processor pattern with a shared base class:
 
 The codebase is organized by domain (data type) rather than technical concerns:
 
-```
+```text
 processors/
 ├── base.ts                    # Shared base class
 ├── health/                    # Health data processing
@@ -125,7 +130,8 @@ processors/
 
 - Mark private fields as `readonly` if they're only assigned in the constructor
 - Prefer nullish coalescing (`??`) over logical OR (`||`) for default values
-- Use optional chaining (`?.`) instead of multiple `&&` checks for safer property access
+- Use optional chaining (`?.`) instead of multiple `&&` checks for safer
+  property access
 
 **TypeScript Best Practices:**
 
@@ -144,7 +150,8 @@ if (exerciseSet?.approachIds?.length) { ... }
 // Avoid
 private sourceFile: string; // if never reassigned
 const name = training.name || "";
-if (exerciseSet && exerciseSet.approachIds && exerciseSet.approachIds.length) { ... }
+if (exerciseSet && exerciseSet.approachIds &&
+    exerciseSet.approachIds.length) { ... }
 ```
 
 ## Development Notes
