@@ -49,7 +49,7 @@ The application follows a modular processor pattern with a shared base class:
 - **BaseProcessor** (`processors/base.ts`): Provides shared utilities for file handling, CSV parsing, date manipulation, and weekly grouping
 - **Specialized Processors**: Each data type has its own processor extending BaseProcessor, organized by domain:
   - **HealthProcessor** (`processors/health/index.ts`): Processes Apple HealthKit CSV exports with complex sleep analysis and body composition calculations
-  - **TrainingProcessor** (`processors/training/index.ts`): Processes Gym Tracker backup files (JSON format)  
+  - **TrainingProcessor** (`processors/training/index.ts`): Processes Gym Tracker backup files (JSON format)
   - **MacrosProcessor** (`processors/macros/index.ts`): Processes Cronometer chart.csv nutrition data
 
 ### Data Flow
@@ -122,16 +122,19 @@ processors/
 ### Code Quality Guidelines
 
 **Immutability and Safety:**
+
 - Mark private fields as `readonly` if they're only assigned in the constructor
 - Prefer nullish coalescing (`??`) over logical OR (`||`) for default values
 - Use optional chaining (`?.`) instead of multiple `&&` checks for safer property access
 
 **TypeScript Best Practices:**
+
 - Use proper type guards instead of unnecessary type assertions
 - Prefer `filter((item): item is Type => condition)` for type narrowing
 - Avoid `!` assertions unless absolutely necessary
 
 **Examples:**
+
 ```typescript
 // Good
 private readonly sourceFile: string;
