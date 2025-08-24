@@ -1,83 +1,113 @@
 import * as path from "path";
+import * as fs from "fs";
 import { BaseProcessor } from "../base";
 import { DailyMetrics, WeeklyMetrics } from "../../types";
-import { FileParser } from "./parsers/file-parser";
-import { HealthCSVParser } from "./parsers/health-csv-parser";
-import { MetricsMerger } from "./parsers/metrics-merger";
 import { calculateHealthSummary } from "./summary";
+import { MetricsMerger } from "./metrics-merger";
+import {
+  BaseFileParser,
+  StepCountFileParser,
+  SleepAnalysisFileParser,
+  BodyMassFileParser,
+  BodyFatFileParser,
+  LeanBodyMassFileParser,
+  BodyMassIndexFileParser,
+  HeartRateFileParser,
+} from "./parsers";
 
 export class HealthProcessor extends BaseProcessor {
-  private readonly fileParsers: FileParser[];
+  private readonly parsersByPrefix: Record<string, BaseFileParser>;
 
   constructor() {
     super();
-    this.fileParsers = this.initializeFileParsers();
+    this.parsersByPrefix = this.initializeParsers();
   }
 
-  private initializeFileParsers(): FileParser[] {
-    return [
-      new HealthCSVParser(),
-      // Future parsers can be added here (e.g., JSON, XML, other CSV formats)
-    ];
+  private initializeParsers(): Record<string, BaseFileParser> {
+    return {
+      "HKQuantityTypeIdentifierStepCount": new StepCountFileParser(),
+      "HKCategoryTypeIdentifierSleepAnalysis": new SleepAnalysisFileParser(),
+      "HKQuantityTypeIdentifierBodyMass": new BodyMassFileParser(),
+      "HKQuantityTypeIdentifierBodyFatPercentage": new BodyFatFileParser(),
+      "HKQuantityTypeIdentifierLeanBodyMass": new LeanBodyMassFileParser(),
+      "HKQuantityTypeIdentifierBodyMassIndex": new BodyMassIndexFileParser(),
+      "HKQuantityTypeIdentifierHeartRate": new HeartRateFileParser(),
+    };
   }
 
   /**
-   * Get all supported filenames from all parsers
+   * Get HK CSV files from sources directory
    * @returns Array of file paths to process
    */
-  private getSupportedFiles(): string[] {
-    const allFiles: string[] = [];
+  private getHKFiles(): string[] {
+    try {
+      const files = fs.readdirSync(this.sourcesDir);
+      const supportedFiles = files
+        .filter((file) => file.startsWith("HK") && file.endsWith(".csv"))
+        .map((file) => path.join(this.sourcesDir, file));
 
-    for (const parser of this.fileParsers) {
-      const supportedFiles = parser.getSupportedFiles(this.sourcesDir);
-      allFiles.push(...supportedFiles);
+      if (supportedFiles.length === 0) {
+        console.warn(`No HK*.csv files found in ${this.sourcesDir}`);
+      }
+
+      return supportedFiles;
+    } catch (error) {
+      console.error(error);
+      return [];
     }
-
-    return allFiles;
   }
 
   /**
-   * Process all supported files using dedicated parsers to get DailyMetrics
-   * @returns Array of DailyMetrics arrays from different parsers
+   * Process all supported files to get DailyMetrics
+   * Uses filename-based parser selection and dedicated file parsers
+   * @returns Array of DailyMetrics
    */
-  private processAllFiles(): DailyMetrics[][] {
-    const metricsSets: DailyMetrics[][] = [];
+  private extractMetricsFromAllFiles(): DailyMetrics[] {
+    const filesToProcess = this.getHKFiles();
 
-    for (const parser of this.fileParsers) {
-      console.log(`Processing files with ${parser.getName()} parser...`);
-      const supportedFiles = parser.getSupportedFiles(this.sourcesDir);
+    if (filesToProcess.length === 0) {
+      console.log(`No supported health sources found`);
+      return [];
+    }
 
-      if (supportedFiles.length === 0) {
-        console.log(`No supported files found for ${parser.getName()} parser`);
-        continue;
-      }
+    const allMetricsArrays: DailyMetrics[][] = [];
 
-      const parserMetrics: DailyMetrics[] = [];
+    for (const filePath of filesToProcess) {
+      const fileName = path.basename(filePath);
+      const filePrefix = fileName.split("_")[0];
 
-      for (const filePath of supportedFiles) {
-        const fileName = path.basename(filePath);
-        console.log(`  Reading file: ${fileName}`);
+      console.log(`  Processing file: ${fileName} (type: ${filePrefix})`);
 
-        try {
-          const fileMetrics = parser.parseFile(filePath);
-          parserMetrics.push(...fileMetrics);
-        } catch (error) {
-          console.error(
-            `  Error reading file ${fileName}:`,
-            error instanceof Error ? error.message : String(error),
-          );
+      try {
+        // Find appropriate parser based on filename prefix
+        const parser = this.parsersByPrefix[filePrefix];
+        if (!parser) {
+          console.warn(`    No parser found for file type: ${filePrefix}`);
+          continue;
         }
-      }
-
-      if (parserMetrics.length > 0) {
-        metricsSets.push(parserMetrics);
-        console.log(
-          `${parser.getName()} parser processed ${parserMetrics.length} daily metrics`,
+        const fileMetrics = parser.parseCSVFile(filePath);
+        if (fileMetrics.length > 0) {
+          allMetricsArrays.push(fileMetrics);
+          console.log(`    Processed ${fileMetrics.length} daily metrics`);
+        } else {
+          console.warn(`    No metrics extracted from file`);
+        }
+      } catch (error) {
+        console.error(
+          `  Error processing file ${fileName}:`,
+          error instanceof Error ? error.message : String(error),
         );
       }
     }
 
-    return metricsSets;
+    // Merge all metrics from different files by date
+    const mergedMetrics = MetricsMerger.merge(allMetricsArrays);
+
+    console.log(
+      `Processed ${filesToProcess.length} files, extracted ${mergedMetrics.length} daily metrics`,
+    );
+
+    return mergedMetrics;
   }
 
   /**
@@ -96,26 +126,12 @@ export class HealthProcessor extends BaseProcessor {
    */
   public process(): WeeklyMetrics[] {
     try {
-      console.log("Loading health data...");
+      const dailyMetrics = this.extractMetricsFromAllFiles();
+      console.log(`Processed ${dailyMetrics.length} daily metrics`);
 
-      // 1. Get all supported filenames from parsers
-      const supportedFiles = this.getSupportedFiles();
-      console.log(`Found ${supportedFiles.length} supported files`);
-
-      // 2. Process each file with dedicated parsers to get DailyMetrics
-      const metricsSets = this.processAllFiles();
-      console.log(
-        `Processed data with ${metricsSets.length} different parsers`,
-      );
-
-      // 3. Flat merge DailyMetrics from different parsers
-      console.log("Merging daily metrics from all parsers...");
-      const unifiedDailyMetrics = MetricsMerger.flatMerge(metricsSets);
-      console.log(`Unified ${unifiedDailyMetrics.length} daily metrics`);
-
-      // 4. Pass unified DailyMetrics to createWeeklyMetrics
+      // 3. Group by week
       console.log("Grouping by week...");
-      const weeklyMetrics = this.createWeeklyMetrics(unifiedDailyMetrics);
+      const weeklyMetrics = this.createWeeklyMetrics(dailyMetrics);
 
       console.log("Saving weekly files...");
       this.saveWeeklyFiles(weeklyMetrics, "health");

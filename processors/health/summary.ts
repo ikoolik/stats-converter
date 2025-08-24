@@ -1,4 +1,5 @@
 import { DailyMetrics } from "../../types";
+import { isNumberArray, isSleepDataArray } from "./type-guards";
 
 interface SleepData {
   Core: string;
@@ -120,12 +121,15 @@ export function calculateHealthSummary(
       const sleepData = values.filter(
         (value) => typeof value === "object" && value !== null,
       );
-      summary[key] = calculateAverageSleep(sleepData as SleepData[]);
+      if (isSleepDataArray(sleepData)) {
+        summary[key] = calculateAverageSleep(sleepData);
+      }
     } else if (typeof values[0] === "number") {
       // Handle numeric values
-      const numericValues = values as number[];
-      const average =
-        numericValues.reduce((sum, val) => sum + val, 0) / numericValues.length;
+      if (!isNumberArray(values)) {
+        return; // Skip if not all values are numbers
+      }
+      const average = values.reduce((sum, val) => sum + val, 0) / values.length;
       summary[key] = roundToTwoDecimals(average);
     }
     // Skip other types for now

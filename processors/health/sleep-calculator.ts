@@ -1,5 +1,10 @@
-import { ASLEEP_STATES, MINUTES_PER_HOUR } from "./constants";
-import { HealthRecord } from "./parsers";
+import {
+  ASLEEP_STATES,
+  MINUTES_PER_HOUR,
+  SLEEP_SESSION_THRESHOLD_MINUTES,
+} from "./constants";
+import { HealthRecord } from "./parsers/base";
+import { validateStringHealthRecord } from "./type-guards";
 
 export interface SleepMetrics {
   Core: string;
@@ -26,10 +31,28 @@ export class SleepCalculator {
 
     for (const record of sleepData) {
       const duration = record.duration ?? 0;
-      const state = record.value as string;
+      const validatedRecord = validateStringHealthRecord(record);
 
-      if (state in sleepMetrics) {
-        sleepMetrics[state as keyof typeof sleepMetrics] += duration;
+      if (!validatedRecord) continue; // Skip records with invalid state values
+      
+      const state = validatedRecord.value as string;
+
+      switch (state) {
+        case "inBed":
+          sleepMetrics.inBed += duration;
+          break;
+        case "asleepCore":
+          sleepMetrics.asleepCore += duration;
+          break;
+        case "asleepDeep":
+          sleepMetrics.asleepDeep += duration;
+          break;
+        case "asleepREM":
+          sleepMetrics.asleepREM += duration;
+          break;
+        case "awake":
+          sleepMetrics.awake += duration;
+          break;
       }
 
       if (
@@ -61,7 +84,7 @@ export class SleepCalculator {
     data: HealthRecord[],
   ): Record<string, HealthRecord[]> {
     const sessions: Record<string, HealthRecord[]> = {};
-    const sessionThreshold = 120;
+    const sessionThreshold = SLEEP_SESSION_THRESHOLD_MINUTES;
 
     data.sort(
       (a, b) =>

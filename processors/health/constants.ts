@@ -11,3 +11,4 @@ export const BODY_METRICS = [
 export const ASLEEP_STATES = ["asleepCore", "asleepDeep", "asleepREM"];
 
 export const MINUTES_PER_HOUR = 60;
+export const SLEEP_SESSION_THRESHOLD_MINUTES = 120; // Minutes between sleep records to consider them separate sessions

@@ -5,13 +5,13 @@ interface ExerciseSet {
   weight: number;
 }
 
-interface ExerciseSummary {
-  totalSets: number;
-  totalVolume: number;
+interface ExerciseDetail {
+  set: number;
+  weights: number[];
 }
 
 interface TrainingSummary extends Record<string, unknown> {
-  exercises: Record<string, ExerciseSummary>;
+  exercises: Record<string, ExerciseDetail>;
 }
 
 /**
@@ -22,39 +22,39 @@ interface TrainingSummary extends Record<string, unknown> {
 export function calculateTrainingSummary(
   dailyMetrics: DailyMetrics[],
 ): TrainingSummary {
-  const exerciseSummaries: Record<string, ExerciseSummary> = {};
+  const exerciseSummaries: Record<string, ExerciseDetail> = {};
 
   // Process each day's exercises
   dailyMetrics.forEach((day) => {
     if (day.exercises && Array.isArray(day.exercises)) {
       day.exercises.forEach((exercise: unknown) => {
         const exerciseName = (exercise as { name: string }).name;
-        const weightType = (exercise as { weightType: string }).weightType;
 
-        // Initialize exercise summary if it doesn't exist
+        // Initialize exercise detail if it doesn't exist
         if (!exerciseSummaries[exerciseName]) {
           exerciseSummaries[exerciseName] = {
-            totalSets: 0,
-            totalVolume: 0,
+            set: 0,
+            weights: [],
           };
         }
 
-        // Count sets and calculate volume for this exercise
+        // Process sets for this exercise
         const exerciseSets = (exercise as { sets?: ExerciseSet[] }).sets;
         if (exerciseSets && Array.isArray(exerciseSets)) {
-          exerciseSets.forEach((set: ExerciseSet) => {
-            exerciseSummaries[exerciseName].totalSets += 1;
+          exerciseSummaries[exerciseName].set += exerciseSets.length;
 
-            // Calculate volume: reps × weight
-            let volume = set.reps * set.weight;
-
-            // Multiply by 2 for dumbbell exercises (since we're using single dumbbell weight)
-            if (weightType === "dumbbell weight") {
-              volume *= 2;
+          // Collect unique weights
+          exerciseSets.forEach((set) => {
+            if (
+              set.weight &&
+              !exerciseSummaries[exerciseName].weights.includes(set.weight)
+            ) {
+              exerciseSummaries[exerciseName].weights.push(set.weight);
             }
-
-            exerciseSummaries[exerciseName].totalVolume += volume;
           });
+
+          // Sort weights for consistent output
+          exerciseSummaries[exerciseName].weights.sort((a, b) => a - b);
         }
       });
     }

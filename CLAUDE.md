@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a TypeScript-based health and fitness data processing application that converts exports from mobile health apps (Gym Tracker, Health Export CSV, Cronometer) into organized weekly JSON files. The system processes three types of data: health metrics, training/workout data, and nutrition/macros data.
 
+The application includes comprehensive test coverage with Jest and follows strict TypeScript practices with ESLint and Prettier formatting.
+
 ## Development Commands
 
 ### Build and Run
@@ -25,19 +27,23 @@ npm run format         # Format code with Prettier
 npm run format:check   # Check if code is properly formatted
 ```
 
+### Testing
+
+```bash
+npm test               # Run Jest tests
+npm run test:coverage  # Run tests with coverage reports
+```
+
 ### Data Processing Commands
 
 ```bash
-npm run process:all      # Build and process all data types
-npm run process:health   # Build and process only health data
-npm run process:macros   # Build and process only macros data
-npm run process:training # Build and process only training data
+npm run process         # Build and process all data types
 ```
 
 ### Direct CLI Usage
 
 ```bash
-node dist/process.js [all|health|macros|training]
+node dist/process.js    # Processes all data types (training, health, macros)
 ```
 
 ## Code Architecture
@@ -82,7 +88,17 @@ processors/
 ├── base.ts                    # Shared base class
 ├── health/                    # Health data processing
 │   ├── index.ts              # Main HealthProcessor
-│   ├── parsers.ts            # CSV parsing logic
+│   ├── parsers.ts            # Legacy CSV parsing logic
+│   ├── parsers/              # Dedicated parser modules
+│   │   ├── base.ts           # Base parser class
+│   │   ├── body-metrics.ts   # Body composition parsing
+│   │   ├── file-parser.ts    # File handling utilities
+│   │   ├── health-csv-parser.ts # CSV format parsing
+│   │   ├── index.ts          # Parser exports
+│   │   ├── metrics-merger.ts # Data merging logic
+│   │   ├── parser-utils.ts   # Parsing utilities
+│   │   ├── sleep-analysis.ts # Sleep data parsing
+│   │   └── step-count.ts     # Step count parsing
 │   ├── strategies.ts         # Metric processing strategies
 │   ├── calculations.ts       # Health calculations
 │   ├── constants.ts          # Health-specific constants
@@ -172,5 +188,13 @@ if (exerciseSet && exerciseSet.approachIds &&
 ### Performance Considerations
 
 - Processes data incrementally by type
-- Memory-efficient CSV parsing with custom parser
+- Memory-efficient CSV parsing with dedicated parser modules
 - File-based output prevents memory accumulation
+- Modular parser architecture allows for optimized processing of different data types
+
+### Testing Infrastructure
+
+- Comprehensive Jest test suite covering all processors
+- Unit tests for calculations, parsers, and utilities
+- Coverage reports available in `coverage/` directory
+- Test files organized to mirror processor structure in `tests/` directory
