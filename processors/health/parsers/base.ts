@@ -1,18 +1,10 @@
 import * as fs from "fs";
 import { DailyMetrics } from "../../../types";
-import { CSVRecord, CSVReader } from "../csv-reader";
 
-/**
- * Health record interface for individual parsed records
- */
-export interface HealthRecord {
-  date: string;
+export interface CSVRecord {
   type: string;
-  value: number | string;
-  duration?: number;
-  startDate?: string;
-  endDate?: string;
-  unit?: string;
+  sourceName: string;
+  fields: string[];
 }
 
 /**
@@ -26,7 +18,7 @@ export abstract class BaseFileParser {
    * Parse a CSV file by reading it and processing the records
    */
   parseCSVFile(filePath: string): DailyMetrics[] {
-    const csvRecords = CSVReader.readHealthCSV(filePath);
+    const csvRecords = ParserUtils.readHealthCSV(filePath);
     return this.parseFile(csvRecords);
   }
 }
@@ -51,10 +43,29 @@ export class ParserUtils {
   }
 
   /**
-   * Load text file contents
+   * Read Health Export CSV files
+   * Handles the specific format used by Health Export CSV app
    */
-  static loadTextFile(filePath: string): string {
-    return fs.readFileSync(filePath, "utf-8");
+  static readHealthCSV(filePath: string): CSVRecord[] {
+    const content = fs.readFileSync(filePath, "utf8");
+    const lines = content.split("\n");
+    const dataLines = lines.slice(2); // Skip sep=, and header
+    const records: CSVRecord[] = [];
+
+    for (const line of dataLines) {
+      if (line.trim() === "") continue;
+
+      const fields = ParserUtils.parseCSVLine(line);
+      if (fields.length < 8) continue;
+
+      records.push({
+        type: fields[0],
+        sourceName: fields[1],
+        fields,
+      });
+    }
+
+    return records;
   }
 
   /**

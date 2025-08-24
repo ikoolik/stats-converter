@@ -1,8 +1,21 @@
-import { BaseFileParser, ParserUtils, HealthRecord } from "./base";
+import { BaseFileParser, ParserUtils } from "./base";
 import { DailyMetrics } from "../../../types";
 import { CSVRecord } from "../csv-reader";
 import { SleepCalculator } from "../sleep-calculator";
 import { MILLISECONDS_PER_MINUTE } from "../constants";
+
+/**
+ * Health record interface for individual parsed records
+ */
+export interface HealthRecord {
+  date: string;
+  type: string;
+  value: number | string;
+  duration?: number;
+  startDate?: string;
+  endDate?: string;
+  unit?: string;
+}
 
 export class SleepAnalysisFileParser extends BaseFileParser {
   parseFile(records: CSVRecord[]): DailyMetrics[] {
