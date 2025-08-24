@@ -1,5 +1,5 @@
 import { LeanBodyMassFileParser } from "../../../../processors/health/parsers/lean-body-mass-file-parser";
-import { CSVRecord } from "../../../../processors/health/csv-reader";
+import { CSVRecord } from "../../../../processors/health/parsers/base";
 
 describe("LeanBodyMassFileParser", () => {
   let parser: LeanBodyMassFileParser;
@@ -23,9 +23,9 @@ describe("LeanBodyMassFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "kg",
-            "65.6"
-          ]
-        }
+            "65.6",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -36,9 +36,9 @@ describe("LeanBodyMassFileParser", () => {
         metrics: {
           leanBodyMass: {
             value: 65.6,
-            unit: "kg"
-          }
-        }
+            unit: "kg",
+          },
+        },
       });
     });
 
@@ -56,8 +56,8 @@ describe("LeanBodyMassFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "kg",
-            "65.5"
-          ]
+            "65.5",
+          ],
         },
         {
           type: "HKQuantityTypeIdentifierLeanBodyMass",
@@ -71,9 +71,9 @@ describe("LeanBodyMassFileParser", () => {
             "2025-08-23 10:00:00 +0000",
             "2025-08-23 10:00:00 +0000",
             "kg",
-            "65.8"
-          ]
-        }
+            "65.8",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -84,9 +84,9 @@ describe("LeanBodyMassFileParser", () => {
         metrics: {
           leanBodyMass: {
             value: 65.8,
-            unit: "kg"
-          }
-        }
+            unit: "kg",
+          },
+        },
       });
     });
 
@@ -104,8 +104,8 @@ describe("LeanBodyMassFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "kg",
-            "65.6"
-          ]
+            "65.6",
+          ],
         },
         {
           type: "HKQuantityTypeIdentifierLeanBodyMass",
@@ -119,31 +119,31 @@ describe("LeanBodyMassFileParser", () => {
             "2025-08-24 04:43:49 +0000",
             "2025-08-24 04:43:49 +0000",
             "kg",
-            "65.8"
-          ]
-        }
+            "65.8",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(2);
-      expect(result.find(r => r.date === "2025-08-23")).toEqual({
+      expect(result.find((r) => r.date === "2025-08-23")).toEqual({
         date: "2025-08-23",
         metrics: {
           leanBodyMass: {
             value: 65.6,
-            unit: "kg"
-          }
-        }
+            unit: "kg",
+          },
+        },
       });
-      expect(result.find(r => r.date === "2025-08-24")).toEqual({
+      expect(result.find((r) => r.date === "2025-08-24")).toEqual({
         date: "2025-08-24",
         metrics: {
           leanBodyMass: {
             value: 65.8,
-            unit: "kg"
-          }
-        }
+            unit: "kg",
+          },
+        },
       });
     });
 
@@ -155,9 +155,9 @@ describe("LeanBodyMassFileParser", () => {
           fields: [
             "HKQuantityTypeIdentifierLeanBodyMass",
             "Zepp Life",
-            "202503131848"
-          ] // Only 3 fields, needs at least 9
-        }
+            "202503131848",
+          ], // Only 3 fields, needs at least 9
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -179,9 +179,9 @@ describe("LeanBodyMassFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "kg",
-            "65.6\r\n" // With carriage return and newline
-          ]
-        }
+            "65.6\r\n", // With carriage return and newline
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -204,9 +204,9 @@ describe("LeanBodyMassFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "kg",
-            "65.666666"
-          ]
-        }
+            "65.666666",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);

@@ -25,13 +25,13 @@ export class HealthProcessor extends BaseProcessor {
 
   private initializeParsers(): Record<string, BaseFileParser> {
     return {
-      "HKQuantityTypeIdentifierStepCount": new StepCountFileParser(),
-      "HKCategoryTypeIdentifierSleepAnalysis": new SleepAnalysisFileParser(),
-      "HKQuantityTypeIdentifierBodyMass": new BodyMassFileParser(),
-      "HKQuantityTypeIdentifierBodyFatPercentage": new BodyFatFileParser(),
-      "HKQuantityTypeIdentifierLeanBodyMass": new LeanBodyMassFileParser(),
-      "HKQuantityTypeIdentifierBodyMassIndex": new BodyMassIndexFileParser(),
-      "HKQuantityTypeIdentifierHeartRate": new HeartRateFileParser(),
+      HKQuantityTypeIdentifierStepCount: new StepCountFileParser(),
+      HKCategoryTypeIdentifierSleepAnalysis: new SleepAnalysisFileParser(),
+      HKQuantityTypeIdentifierBodyMass: new BodyMassFileParser(),
+      HKQuantityTypeIdentifierBodyFatPercentage: new BodyFatFileParser(),
+      HKQuantityTypeIdentifierLeanBodyMass: new LeanBodyMassFileParser(),
+      HKQuantityTypeIdentifierBodyMassIndex: new BodyMassIndexFileParser(),
+      HKQuantityTypeIdentifierHeartRate: new HeartRateFileParser(),
     };
   }
 

@@ -111,7 +111,7 @@ describe("Training Summary Calculation", () => {
       exercises: {
         "Dumbbell Curls": {
           totalSets: 2,
-          totalVolume: 10 * 15 * 2 + 8 * 15 * 2, // 300 + 240 = 540
+          totalVolume: 10 * 15 + 8 * 15, // 150 + 120 = 270
         },
       },
     });
@@ -149,7 +149,7 @@ describe("Training Summary Calculation", () => {
       exercises: {
         "Dumbbell Press": {
           totalSets: 2,
-          totalVolume: 10 * 20 * 2 + 8 * 20 * 2, // 400 + 320 = 720
+          totalVolume: 10 * 20 + 8 * 20, // 200 + 160 = 360
         },
         "Barbell Rows": {
           totalSets: 2,
@@ -312,7 +312,7 @@ describe("Training Summary Calculation", () => {
         },
         "Dumbbell Shoulder Press": {
           totalSets: 2,
-          totalVolume: 12 * 25 * 2 + 10 * 25 * 2, // 600 + 500 = 1100
+          totalVolume: 12 * 25 + 10 * 25, // 300 + 250 = 550
         },
         "Barbell Rows": {
           totalSets: 3,

@@ -1,6 +1,5 @@
-import { BaseFileParser, ParserUtils } from "./base";
+import { BaseFileParser, ParserUtils, CSVRecord } from "./base";
 import { DailyMetrics } from "../../../types";
-import { CSVRecord } from "../csv-reader";
 
 export class LeanBodyMassFileParser extends BaseFileParser {
   parseFile(records: CSVRecord[]): DailyMetrics[] {

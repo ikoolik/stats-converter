@@ -6,8 +6,8 @@ interface ExerciseSet {
 }
 
 interface ExerciseDetail {
-  set: number;
-  weights: number[];
+  totalSets: number;
+  totalVolume: number;
 }
 
 interface TrainingSummary extends Record<string, unknown> {
@@ -33,28 +33,23 @@ export function calculateTrainingSummary(
         // Initialize exercise detail if it doesn't exist
         if (!exerciseSummaries[exerciseName]) {
           exerciseSummaries[exerciseName] = {
-            set: 0,
-            weights: [],
+            totalSets: 0,
+            totalVolume: 0,
           };
         }
 
         // Process sets for this exercise
         const exerciseSets = (exercise as { sets?: ExerciseSet[] }).sets;
         if (exerciseSets && Array.isArray(exerciseSets)) {
-          exerciseSummaries[exerciseName].set += exerciseSets.length;
+          exerciseSummaries[exerciseName].totalSets += exerciseSets.length;
 
-          // Collect unique weights
+          // Calculate total volume (reps × weight for each set)
           exerciseSets.forEach((set) => {
-            if (
-              set.weight &&
-              !exerciseSummaries[exerciseName].weights.includes(set.weight)
-            ) {
-              exerciseSummaries[exerciseName].weights.push(set.weight);
+            if (set.reps && set.weight) {
+              exerciseSummaries[exerciseName].totalVolume +=
+                set.reps * set.weight;
             }
           });
-
-          // Sort weights for consistent output
-          exerciseSummaries[exerciseName].weights.sort((a, b) => a - b);
         }
       });
     }

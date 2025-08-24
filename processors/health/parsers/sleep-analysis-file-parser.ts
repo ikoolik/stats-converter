@@ -1,6 +1,5 @@
-import { BaseFileParser, ParserUtils } from "./base";
+import { BaseFileParser, ParserUtils, CSVRecord } from "./base";
 import { DailyMetrics } from "../../../types";
-import { CSVRecord } from "../csv-reader";
 import { SleepCalculator } from "../sleep-calculator";
 import { MILLISECONDS_PER_MINUTE } from "../constants";
 

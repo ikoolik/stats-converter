@@ -1,4 +1,5 @@
-export { BaseFileParser, HealthRecord, ParserUtils } from "./base";
+export { BaseFileParser, ParserUtils } from "./base";
+export { HealthRecord } from "./sleep-analysis-file-parser";
 export { StepCountFileParser } from "./step-count-file-parser";
 export { SleepAnalysisFileParser } from "./sleep-analysis-file-parser";
 export { BodyMassFileParser } from "./body-mass-file-parser";

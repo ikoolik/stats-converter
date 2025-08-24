@@ -1,5 +1,5 @@
 import { SleepAnalysisFileParser } from "../../../../processors/health/parsers/sleep-analysis-file-parser";
-import { CSVRecord } from "../../../../processors/health/csv-reader";
+import { CSVRecord } from "../../../../processors/health/parsers/base";
 
 describe("SleepAnalysisFileParser", () => {
   let parser: SleepAnalysisFileParser;
@@ -22,8 +22,8 @@ describe("SleepAnalysisFileParser", () => {
             "",
             "2025-08-24 01:00:00 +0000",
             "2025-08-24 02:00:00 +0000",
-            "asleepCore"
-          ]
+            "asleepCore",
+          ],
         },
         {
           type: "HKCategoryTypeIdentifierSleepAnalysis",
@@ -36,8 +36,8 @@ describe("SleepAnalysisFileParser", () => {
             "",
             "2025-08-24 02:00:00 +0000",
             "2025-08-24 02:30:00 +0000",
-            "asleepREM"
-          ]
+            "asleepREM",
+          ],
         },
         {
           type: "HKCategoryTypeIdentifierSleepAnalysis",
@@ -50,9 +50,9 @@ describe("SleepAnalysisFileParser", () => {
             "",
             "2025-08-24 02:30:00 +0000",
             "2025-08-24 06:00:00 +0000",
-            "asleepCore"
-          ]
-        }
+            "asleepCore",
+          ],
+        },
       ];
 
       const result = parser.parseFile(mockRecords);
@@ -70,9 +70,9 @@ describe("SleepAnalysisFileParser", () => {
           fields: [
             "HKCategoryTypeIdentifierSleepAnalysis",
             "Zepp Life",
-            "202503131848"
-          ]
-        }
+            "202503131848",
+          ],
+        },
       ];
 
       const result = parser.parseFile(mockRecords);
@@ -93,9 +93,9 @@ describe("SleepAnalysisFileParser", () => {
             "",
             "2025-08-24 01:00:00 +0000",
             "2025-08-24 02:00:00 +0000",
-            "asleepCore\r\n"
-          ]
-        }
+            "asleepCore\r\n",
+          ],
+        },
       ];
 
       const result = parser.parseFile(mockRecords);
@@ -123,8 +123,8 @@ describe("SleepAnalysisFileParser", () => {
             "",
             "2025-08-24 01:00:00 +0000",
             "2025-08-24 02:00:00 +0000",
-            "asleepCore"
-          ]
+            "asleepCore",
+          ],
         },
         {
           type: "HKCategoryTypeIdentifierSleepAnalysis",
@@ -137,8 +137,8 @@ describe("SleepAnalysisFileParser", () => {
             "",
             "2025-08-24 02:00:00 +0000",
             "2025-08-24 02:30:00 +0000",
-            "asleepREM"
-          ]
+            "asleepREM",
+          ],
         },
         {
           type: "HKCategoryTypeIdentifierSleepAnalysis",
@@ -151,18 +151,18 @@ describe("SleepAnalysisFileParser", () => {
             "",
             "2025-08-25 01:00:00 +0000",
             "2025-08-25 03:00:00 +0000",
-            "asleepDeep"
-          ]
-        }
+            "asleepDeep",
+          ],
+        },
       ];
 
       const result = parser.parseFile(mockRecords);
 
       expect(result).toHaveLength(2);
-      
-      const day1 = result.find(r => r.date === "2025-08-24");
-      const day2 = result.find(r => r.date === "2025-08-25");
-      
+
+      const day1 = result.find((r) => r.date === "2025-08-24");
+      const day2 = result.find((r) => r.date === "2025-08-25");
+
       expect(day1?.metrics.sleep).toBeDefined();
       expect(day2?.metrics.sleep).toBeDefined();
     });
@@ -180,9 +180,9 @@ describe("SleepAnalysisFileParser", () => {
             "",
             "2025-08-24 01:00:00 +0000",
             "2025-08-24 01:30:00 +0000",
-            "asleepCore"
-          ]
-        }
+            "asleepCore",
+          ],
+        },
       ];
 
       const result = parser.parseFile(mockRecords);

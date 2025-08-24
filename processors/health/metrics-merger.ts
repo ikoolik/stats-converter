@@ -111,4 +111,3 @@ export function calculateFFMI(leanBodyMass: number, height: number): number {
 export function calculateBCI(ffmi: number, bodyFatPercentage: number): number {
   return ffmi * (1 - bodyFatPercentage);
 }
-

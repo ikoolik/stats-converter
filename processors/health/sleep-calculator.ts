@@ -3,7 +3,7 @@ import {
   MINUTES_PER_HOUR,
   SLEEP_SESSION_THRESHOLD_MINUTES,
 } from "./constants";
-import { HealthRecord } from "./parsers/base";
+import { HealthRecord } from "./parsers/sleep-analysis-file-parser";
 import { validateStringHealthRecord } from "./type-guards";
 
 export interface SleepMetrics {
@@ -34,7 +34,7 @@ export class SleepCalculator {
       const validatedRecord = validateStringHealthRecord(record);
 
       if (!validatedRecord) continue; // Skip records with invalid state values
-      
+
       const state = validatedRecord.value as string;
 
       switch (state) {

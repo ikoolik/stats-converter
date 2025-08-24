@@ -1,4 +1,4 @@
-import { HealthRecord } from "./parsers/base";
+import { HealthRecord } from "./parsers/sleep-analysis-file-parser";
 
 /**
  * Type guard functions for health data validation

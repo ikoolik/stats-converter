@@ -1,5 +1,5 @@
 import { BodyFatFileParser } from "../../../../processors/health/parsers/body-fat-file-parser";
-import { CSVRecord } from "../../../../processors/health/csv-reader";
+import { CSVRecord } from "../../../../processors/health/parsers/base";
 
 describe("BodyFatFileParser", () => {
   let parser: BodyFatFileParser;
@@ -23,9 +23,9 @@ describe("BodyFatFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "%",
-            "0.263"
-          ]
-        }
+            "0.263",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -36,9 +36,9 @@ describe("BodyFatFileParser", () => {
         metrics: {
           bodyFatPercentage: {
             value: 26.3,
-            unit: "%"
-          }
-        }
+            unit: "%",
+          },
+        },
       });
     });
 
@@ -56,9 +56,9 @@ describe("BodyFatFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "%",
-            "0.15"
-          ]
-        }
+            "0.15",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -69,9 +69,9 @@ describe("BodyFatFileParser", () => {
         metrics: {
           bodyFatPercentage: {
             value: 15,
-            unit: "%"
-          }
-        }
+            unit: "%",
+          },
+        },
       });
     });
 
@@ -89,8 +89,8 @@ describe("BodyFatFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "%",
-            "0.26"
-          ]
+            "0.26",
+          ],
         },
         {
           type: "HKQuantityTypeIdentifierBodyFatPercentage",
@@ -104,9 +104,9 @@ describe("BodyFatFileParser", () => {
             "2025-08-23 10:00:00 +0000",
             "2025-08-23 10:00:00 +0000",
             "%",
-            "0.264"
-          ]
-        }
+            "0.264",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -117,9 +117,9 @@ describe("BodyFatFileParser", () => {
         metrics: {
           bodyFatPercentage: {
             value: 26.4,
-            unit: "%"
-          }
-        }
+            unit: "%",
+          },
+        },
       });
     });
 
@@ -137,8 +137,8 @@ describe("BodyFatFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "%",
-            "0.263"
-          ]
+            "0.263",
+          ],
         },
         {
           type: "HKQuantityTypeIdentifierBodyFatPercentage",
@@ -152,31 +152,31 @@ describe("BodyFatFileParser", () => {
             "2025-08-24 04:43:49 +0000",
             "2025-08-24 04:43:49 +0000",
             "%",
-            "0.264"
-          ]
-        }
+            "0.264",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(2);
-      expect(result.find(r => r.date === "2025-08-23")).toEqual({
+      expect(result.find((r) => r.date === "2025-08-23")).toEqual({
         date: "2025-08-23",
         metrics: {
           bodyFatPercentage: {
             value: 26.3,
-            unit: "%"
-          }
-        }
+            unit: "%",
+          },
+        },
       });
-      expect(result.find(r => r.date === "2025-08-24")).toEqual({
+      expect(result.find((r) => r.date === "2025-08-24")).toEqual({
         date: "2025-08-24",
         metrics: {
           bodyFatPercentage: {
             value: 26.4,
-            unit: "%"
-          }
-        }
+            unit: "%",
+          },
+        },
       });
     });
 
@@ -188,9 +188,9 @@ describe("BodyFatFileParser", () => {
           fields: [
             "HKQuantityTypeIdentifierBodyFatPercentage",
             "Zepp Life",
-            "202503131848"
-          ] // Only 3 fields, needs at least 9
-        }
+            "202503131848",
+          ], // Only 3 fields, needs at least 9
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -212,9 +212,9 @@ describe("BodyFatFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "%",
-            "0.263\r\n" // With carriage return and newline
-          ]
-        }
+            "0.263\r\n", // With carriage return and newline
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -237,9 +237,9 @@ describe("BodyFatFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "%",
-            "0.26666666"
-          ]
-        }
+            "0.26666666",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -262,9 +262,9 @@ describe("BodyFatFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "%",
-            "0.05"
-          ]
-        }
+            "0.05",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);

@@ -1,5 +1,5 @@
 import { BodyMassFileParser } from "../../../../processors/health/parsers/body-mass-file-parser";
-import { CSVRecord } from "../../../../processors/health/csv-reader";
+import { CSVRecord } from "../../../../processors/health/parsers/base";
 
 describe("BodyMassFileParser", () => {
   let parser: BodyMassFileParser;
@@ -23,9 +23,9 @@ describe("BodyMassFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "kg",
-            "89.05000305175781"
-          ]
-        }
+            "89.05000305175781",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -36,9 +36,9 @@ describe("BodyMassFileParser", () => {
         metrics: {
           bodyMass: {
             value: 89.05,
-            unit: "kg"
-          }
-        }
+            unit: "kg",
+          },
+        },
       });
     });
 
@@ -56,8 +56,8 @@ describe("BodyMassFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "kg",
-            "89.0"
-          ]
+            "89.0",
+          ],
         },
         {
           type: "HKQuantityTypeIdentifierBodyMass",
@@ -71,9 +71,9 @@ describe("BodyMassFileParser", () => {
             "2025-08-23 10:00:00 +0000",
             "2025-08-23 10:00:00 +0000",
             "kg",
-            "89.25"
-          ]
-        }
+            "89.25",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -84,9 +84,9 @@ describe("BodyMassFileParser", () => {
         metrics: {
           bodyMass: {
             value: 89.25,
-            unit: "kg"
-          }
-        }
+            unit: "kg",
+          },
+        },
       });
     });
 
@@ -104,8 +104,8 @@ describe("BodyMassFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "kg",
-            "89.05000305175781"
-          ]
+            "89.05000305175781",
+          ],
         },
         {
           type: "HKQuantityTypeIdentifierBodyMass",
@@ -119,31 +119,31 @@ describe("BodyMassFileParser", () => {
             "2025-08-24 04:43:49 +0000",
             "2025-08-24 04:43:49 +0000",
             "kg",
-            "89.44999694824219"
-          ]
-        }
+            "89.44999694824219",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(2);
-      expect(result.find(r => r.date === "2025-08-23")).toEqual({
+      expect(result.find((r) => r.date === "2025-08-23")).toEqual({
         date: "2025-08-23",
         metrics: {
           bodyMass: {
             value: 89.05,
-            unit: "kg"
-          }
-        }
+            unit: "kg",
+          },
+        },
       });
-      expect(result.find(r => r.date === "2025-08-24")).toEqual({
+      expect(result.find((r) => r.date === "2025-08-24")).toEqual({
         date: "2025-08-24",
         metrics: {
           bodyMass: {
             value: 89.45,
-            unit: "kg"
-          }
-        }
+            unit: "kg",
+          },
+        },
       });
     });
 
@@ -155,9 +155,9 @@ describe("BodyMassFileParser", () => {
           fields: [
             "HKQuantityTypeIdentifierBodyMass",
             "Zepp Life",
-            "202503131848"
-          ] // Only 3 fields, needs at least 9
-        }
+            "202503131848",
+          ], // Only 3 fields, needs at least 9
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -179,9 +179,9 @@ describe("BodyMassFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "kg",
-            "89.25\r\n" // With carriage return and newline
-          ]
-        }
+            "89.25\r\n", // With carriage return and newline
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -204,9 +204,9 @@ describe("BodyMassFileParser", () => {
             "2025-08-23 04:53:08 +0000",
             "2025-08-23 04:53:08 +0000",
             "kg",
-            "89.333333333"
-          ]
-        }
+            "89.333333333",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -229,9 +229,9 @@ describe("BodyMassFileParser", () => {
             "2025-08-20 05:04:37 +0000",
             "2025-08-20 05:04:37 +0000",
             "kg",
-            "88.55000305175781"
-          ]
-        }
+            "88.55000305175781",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -254,9 +254,9 @@ describe("BodyMassFileParser", () => {
             "2025-08-18 04:40:36 +0000",
             "2025-08-18 04:40:36 +0000",
             "kg",
-            "89.0"
-          ]
-        }
+            "89.0",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);

@@ -1,5 +1,5 @@
 import { StepCountFileParser } from "../../../../processors/health/parsers/step-count-file-parser";
-import { CSVRecord } from "../../../../processors/health/csv-reader";
+import { CSVRecord } from "../../../../processors/health/parsers/base";
 
 describe("StepCountFileParser", () => {
   let parser: StepCountFileParser;
@@ -23,8 +23,8 @@ describe("StepCountFileParser", () => {
             "2025-08-23 19:50:00 +0000",
             "2025-08-23 19:59:59 +0000",
             "count",
-            "15.0"
-          ]
+            "15.0",
+          ],
         },
         {
           type: "HKQuantityTypeIdentifierStepCount",
@@ -38,9 +38,9 @@ describe("StepCountFileParser", () => {
             "2025-08-23 20:30:00 +0000",
             "2025-08-23 20:39:59 +0000",
             "count",
-            "75.0"
-          ]
-        }
+            "75.0",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -51,9 +51,9 @@ describe("StepCountFileParser", () => {
         metrics: {
           stepCount: {
             value: 75,
-            unit: "count"
-          }
-        }
+            unit: "count",
+          },
+        },
       });
     });
 
@@ -71,8 +71,8 @@ describe("StepCountFileParser", () => {
             "2025-08-23 10:00:00 +0000",
             "2025-08-23 10:09:59 +0000",
             "count",
-            "100"
-          ]
+            "100",
+          ],
         },
         {
           type: "HKQuantityTypeIdentifierStepCount",
@@ -86,9 +86,9 @@ describe("StepCountFileParser", () => {
             "2025-08-23 11:00:00 +0000",
             "2025-08-23 11:09:59 +0000",
             "count",
-            "200"
-          ]
-        }
+            "200",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -99,9 +99,9 @@ describe("StepCountFileParser", () => {
         metrics: {
           stepCount: {
             value: 200,
-            unit: "count"
-          }
-        }
+            unit: "count",
+          },
+        },
       });
     });
 
@@ -119,8 +119,8 @@ describe("StepCountFileParser", () => {
             "2025-08-23 22:20:00 +0000",
             "2025-08-23 22:29:59 +0000",
             "count",
-            "9.0"
-          ]
+            "9.0",
+          ],
         },
         {
           type: "HKQuantityTypeIdentifierStepCount",
@@ -134,31 +134,31 @@ describe("StepCountFileParser", () => {
             "2025-08-24 01:50:00 +0000",
             "2025-08-24 01:59:59 +0000",
             "count",
-            "8.0"
-          ]
-        }
+            "8.0",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(2);
-      expect(result.find(r => r.date === "2025-08-23")).toEqual({
+      expect(result.find((r) => r.date === "2025-08-23")).toEqual({
         date: "2025-08-23",
         metrics: {
           stepCount: {
             value: 9,
-            unit: "count"
-          }
-        }
+            unit: "count",
+          },
+        },
       });
-      expect(result.find(r => r.date === "2025-08-24")).toEqual({
+      expect(result.find((r) => r.date === "2025-08-24")).toEqual({
         date: "2025-08-24",
         metrics: {
           stepCount: {
             value: 8,
-            unit: "count"
-          }
-        }
+            unit: "count",
+          },
+        },
       });
     });
 
@@ -176,9 +176,9 @@ describe("StepCountFileParser", () => {
             "2025-08-23 20:41:09 +0000",
             "2025-08-23 20:45:01 +0000",
             "count",
-            "22.0"
-          ]
-        }
+            "22.0",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -194,9 +194,9 @@ describe("StepCountFileParser", () => {
           fields: [
             "HKQuantityTypeIdentifierStepCount",
             "Zepp Life",
-            "202503131848"
-          ] // Only 3 fields, needs at least 9
-        }
+            "202503131848",
+          ], // Only 3 fields, needs at least 9
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -218,9 +218,9 @@ describe("StepCountFileParser", () => {
             "2025-08-23 19:50:00 +0000",
             "2025-08-23 19:59:59 +0000",
             "count",
-            "15.0\r\n" // With carriage return and newline
-          ]
-        }
+            "15.0\r\n", // With carriage return and newline
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
@@ -243,9 +243,9 @@ describe("StepCountFileParser", () => {
             "2025-08-23 19:50:00 +0000",
             "2025-08-23 19:59:59 +0000",
             "count",
-            "15.666666"
-          ]
-        }
+            "15.666666",
+          ],
+        },
       ];
 
       const result = parser.parseFile(records);
