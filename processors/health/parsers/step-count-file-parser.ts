@@ -11,7 +11,11 @@ export class StepCountFileParser extends BaseFileParser {
 
     for (const record of records) {
       if (record.fields.length < 9) continue;
-      if (record.sourceName !== "Zepp Life") continue;
+      if (
+        record.sourceName !== "Zepp Life" &&
+        record.sourceName !== "Mi Fitness"
+      )
+        continue;
 
       const startDate = record.fields[5];
       const value = record.fields[8].replace(/\r?\n/g, "").trim();
@@ -24,8 +28,11 @@ export class StepCountFileParser extends BaseFileParser {
         };
       }
 
+      // Sum up step counts for the same day
+      const currentSteps =
+        (dailyMetrics[dateKey].metrics.stepCount as number) ?? 0;
       dailyMetrics[dateKey].metrics.stepCount = ParserUtils.roundToTwoDecimals(
-        parseFloat(value),
+        currentSteps + parseFloat(value),
       );
     }
 

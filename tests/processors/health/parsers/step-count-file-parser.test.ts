@@ -49,7 +49,7 @@ describe("StepCountFileParser", () => {
       expect(result[0]).toEqual({
         date: "2025-08-23",
         metrics: {
-          stepCount: 75,
+          stepCount: 90,
         },
       });
     });
@@ -94,7 +94,7 @@ describe("StepCountFileParser", () => {
       expect(result[0]).toEqual({
         date: "2025-08-23",
         metrics: {
-          stepCount: 200,
+          stepCount: 300,
         },
       });
     });
@@ -150,7 +150,7 @@ describe("StepCountFileParser", () => {
       });
     });
 
-    test("filters out non-Zepp Life sources", () => {
+    test("filters out sources other than Zepp Life and Mi Fitness", () => {
       const records: CSVRecord[] = [
         {
           type: "HKQuantityTypeIdentifierStepCount",
@@ -240,6 +240,36 @@ describe("StepCountFileParser", () => {
 
       expect(result).toHaveLength(1);
       expect(result[0].metrics.stepCount).toBe(15.67);
+    });
+
+    test("accepts Mi Fitness sources", () => {
+      const records: CSVRecord[] = [
+        {
+          type: "HKQuantityTypeIdentifierStepCount",
+          sourceName: "Mi Fitness",
+          fields: [
+            "HKQuantityTypeIdentifierStepCount",
+            "Mi Fitness",
+            "21",
+            "iPhone13,2",
+            "",
+            "2025-08-23 19:50:00 +0000",
+            "2025-08-23 19:59:59 +0000",
+            "count",
+            "25.0",
+          ],
+        },
+      ];
+
+      const result = parser.parseFile(records);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        date: "2025-08-23",
+        metrics: {
+          stepCount: 25,
+        },
+      });
     });
 
     test("handles empty records array", () => {
