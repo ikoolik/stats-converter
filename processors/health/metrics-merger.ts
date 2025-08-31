@@ -70,14 +70,8 @@ export class MetricsMerger {
           const ffmi = calculateFFMI(leanBodyMass, height);
           const bci = calculateBCI(ffmi, bodyFatPercentage / 100);
 
-          metrics.FFMI = {
-            value: ParserUtils.roundToTwoDecimals(ffmi),
-            unit: "kg/m²",
-          };
-          metrics.BCI = {
-            value: ParserUtils.roundToTwoDecimals(bci),
-            unit: "",
-          };
+          metrics.FFMI = ParserUtils.roundToTwoDecimals(ffmi);
+          metrics.BCI = ParserUtils.roundToTwoDecimals(bci);
         }
       }
     }
