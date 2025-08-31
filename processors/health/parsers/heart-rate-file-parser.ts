@@ -37,9 +37,9 @@ export class HeartRateFileParser extends BaseFileParser {
         date,
         metrics: {
           heartRate: {
-            average: { value: avgHeartRate, unit: data.unit },
-            max: { value: maxHeartRate, unit: data.unit },
-            min: { value: minHeartRate, unit: data.unit },
+            average: avgHeartRate,
+            max: maxHeartRate,
+            min: minHeartRate,
           },
         },
       });

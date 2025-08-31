@@ -9,7 +9,7 @@ describe("BodyFatFileParser", () => {
   });
 
   describe("parseFile", () => {
-    test("parses Zepp Life body fat percentage records correctly", () => {
+    test("parses body fat percentage records correctly", () => {
       const records: CSVRecord[] = [
         {
           type: "HKQuantityTypeIdentifierBodyFatPercentage",
@@ -34,10 +34,7 @@ describe("BodyFatFileParser", () => {
       expect(result[0]).toEqual({
         date: "2025-08-23",
         metrics: {
-          bodyFatPercentage: {
-            value: 26.3,
-            unit: "%",
-          },
+          bodyFatPercentage: 26.3,
         },
       });
     });
@@ -67,10 +64,7 @@ describe("BodyFatFileParser", () => {
       expect(result[0]).toEqual({
         date: "2025-08-23",
         metrics: {
-          bodyFatPercentage: {
-            value: 15,
-            unit: "%",
-          },
+          bodyFatPercentage: 15,
         },
       });
     });
@@ -115,10 +109,7 @@ describe("BodyFatFileParser", () => {
       expect(result[0]).toEqual({
         date: "2025-08-23",
         metrics: {
-          bodyFatPercentage: {
-            value: 26.4,
-            unit: "%",
-          },
+          bodyFatPercentage: 26.4,
         },
       });
     });
@@ -163,19 +154,13 @@ describe("BodyFatFileParser", () => {
       expect(result.find((r) => r.date === "2025-08-23")).toEqual({
         date: "2025-08-23",
         metrics: {
-          bodyFatPercentage: {
-            value: 26.3,
-            unit: "%",
-          },
+          bodyFatPercentage: 26.3,
         },
       });
       expect(result.find((r) => r.date === "2025-08-24")).toEqual({
         date: "2025-08-24",
         metrics: {
-          bodyFatPercentage: {
-            value: 26.4,
-            unit: "%",
-          },
+          bodyFatPercentage: 26.4,
         },
       });
     });
@@ -220,7 +205,7 @@ describe("BodyFatFileParser", () => {
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(1);
-      expect((result[0].metrics.bodyFatPercentage as any).value).toBe(26.3);
+      expect(result[0].metrics.bodyFatPercentage).toBe(26.3);
     });
 
     test("rounds values to two decimal places", () => {
@@ -245,7 +230,7 @@ describe("BodyFatFileParser", () => {
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(1);
-      expect((result[0].metrics.bodyFatPercentage as any).value).toBe(26.67);
+      expect(result[0].metrics.bodyFatPercentage).toBe(26.67);
     });
 
     test("handles very small decimal values", () => {
@@ -270,7 +255,7 @@ describe("BodyFatFileParser", () => {
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(1);
-      expect((result[0].metrics.bodyFatPercentage as any).value).toBe(5);
+      expect(result[0].metrics.bodyFatPercentage).toBe(5);
     });
 
     test("handles empty records array", () => {

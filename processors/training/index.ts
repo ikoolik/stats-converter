@@ -54,11 +54,11 @@ interface ExerciseSetApproach {
   weight?: number;
 }
 
-interface FormattedExercise {
+export type FormattedExercise = {
   name: string;
   weightType: string;
   sets: FormattedExerciseSet[];
-}
+};
 
 interface FormattedExerciseSet {
   reps: number;

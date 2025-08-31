@@ -1,4 +1,4 @@
-import { StepCountFileParser } from "../../../../processors/health/parsers/step-count-file-parser";
+import { StepCountFileParser } from "../../../../processors/health/parsers";
 import { CSVRecord } from "../../../../processors/health/parsers/base";
 
 describe("StepCountFileParser", () => {
@@ -49,10 +49,7 @@ describe("StepCountFileParser", () => {
       expect(result[0]).toEqual({
         date: "2025-08-23",
         metrics: {
-          stepCount: {
-            value: 75,
-            unit: "count",
-          },
+          stepCount: 75,
         },
       });
     });
@@ -97,10 +94,7 @@ describe("StepCountFileParser", () => {
       expect(result[0]).toEqual({
         date: "2025-08-23",
         metrics: {
-          stepCount: {
-            value: 200,
-            unit: "count",
-          },
+          stepCount: 200,
         },
       });
     });
@@ -145,19 +139,13 @@ describe("StepCountFileParser", () => {
       expect(result.find((r) => r.date === "2025-08-23")).toEqual({
         date: "2025-08-23",
         metrics: {
-          stepCount: {
-            value: 9,
-            unit: "count",
-          },
+          stepCount: 9,
         },
       });
       expect(result.find((r) => r.date === "2025-08-24")).toEqual({
         date: "2025-08-24",
         metrics: {
-          stepCount: {
-            value: 8,
-            unit: "count",
-          },
+          stepCount: 8,
         },
       });
     });
@@ -226,7 +214,7 @@ describe("StepCountFileParser", () => {
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(1);
-      expect((result[0].metrics.stepCount as any).value).toBe(15);
+      expect(result[0].metrics.stepCount).toBe(15);
     });
 
     test("rounds values to two decimal places", () => {
@@ -251,7 +239,7 @@ describe("StepCountFileParser", () => {
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(1);
-      expect((result[0].metrics.stepCount as any).value).toBe(15.67);
+      expect(result[0].metrics.stepCount).toBe(15.67);
     });
 
     test("handles empty records array", () => {

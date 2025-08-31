@@ -34,10 +34,7 @@ describe("BodyMassIndexFileParser", () => {
       expect(result[0]).toEqual({
         date: "2025-08-23",
         metrics: {
-          bodyMassIndex: {
-            value: 26.3,
-            unit: "count",
-          },
+          bodyMassIndex: 26.3,
         },
       });
     });
@@ -82,10 +79,7 @@ describe("BodyMassIndexFileParser", () => {
       expect(result[0]).toEqual({
         date: "2025-08-23",
         metrics: {
-          bodyMassIndex: {
-            value: 26.4,
-            unit: "count",
-          },
+          bodyMassIndex: 26.4,
         },
       });
     });
@@ -130,19 +124,13 @@ describe("BodyMassIndexFileParser", () => {
       expect(result.find((r) => r.date === "2025-08-23")).toEqual({
         date: "2025-08-23",
         metrics: {
-          bodyMassIndex: {
-            value: 26.3,
-            unit: "count",
-          },
+          bodyMassIndex: 26.3,
         },
       });
       expect(result.find((r) => r.date === "2025-08-24")).toEqual({
         date: "2025-08-24",
         metrics: {
-          bodyMassIndex: {
-            value: 26.4,
-            unit: "count",
-          },
+          bodyMassIndex: 26.4,
         },
       });
     });
@@ -187,7 +175,7 @@ describe("BodyMassIndexFileParser", () => {
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(1);
-      expect((result[0].metrics.bodyMassIndex as any).value).toBe(26.3);
+      expect(result[0].metrics.bodyMassIndex).toBe(26.3);
     });
 
     test("rounds values to two decimal places", () => {
@@ -212,7 +200,7 @@ describe("BodyMassIndexFileParser", () => {
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(1);
-      expect((result[0].metrics.bodyMassIndex as any).value).toBe(26.37);
+      expect(result[0].metrics.bodyMassIndex).toBe(26.37);
     });
 
     test("handles decimal BMI values correctly", () => {
@@ -237,7 +225,7 @@ describe("BodyMassIndexFileParser", () => {
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(1);
-      expect((result[0].metrics.bodyMassIndex as any).value).toBe(22.15);
+      expect(result[0].metrics.bodyMassIndex).toBe(22.15);
     });
 
     test("handles empty records array", () => {

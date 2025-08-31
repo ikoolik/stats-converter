@@ -9,7 +9,6 @@ export class BodyMassIndexFileParser extends BaseFileParser {
       if (record.fields.length < 9) continue;
 
       const startDate = record.fields[5];
-      const unit = record.fields[7];
       const value = record.fields[8].replace(/\r?\n/g, "").trim();
       const dateKey = ParserUtils.extractDate(startDate);
 
@@ -20,10 +19,8 @@ export class BodyMassIndexFileParser extends BaseFileParser {
         };
       }
 
-      dailyMetrics[dateKey].metrics.bodyMassIndex = {
-        value: ParserUtils.roundToTwoDecimals(parseFloat(value)),
-        unit,
-      };
+      dailyMetrics[dateKey].metrics.bodyMassIndex =
+        ParserUtils.roundToTwoDecimals(parseFloat(value));
     }
 
     return Object.values(dailyMetrics);

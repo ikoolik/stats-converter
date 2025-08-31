@@ -1,11 +1,12 @@
 /**
  * Shared types for data processors
  */
+import { FormattedExercise } from "./processors/training";
 
 export interface DailyMetrics {
   date: string;
   metrics: Record<string, unknown>;
-  exercises?: unknown[];
+  exercises?: FormattedExercise[];
   description?: string;
 }
 

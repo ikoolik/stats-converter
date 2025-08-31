@@ -34,10 +34,7 @@ describe("BodyMassFileParser", () => {
       expect(result[0]).toEqual({
         date: "2025-08-23",
         metrics: {
-          bodyMass: {
-            value: 89.05,
-            unit: "kg",
-          },
+          bodyMass: 89.05,
         },
       });
     });
@@ -82,10 +79,7 @@ describe("BodyMassFileParser", () => {
       expect(result[0]).toEqual({
         date: "2025-08-23",
         metrics: {
-          bodyMass: {
-            value: 89.25,
-            unit: "kg",
-          },
+          bodyMass: 89.25,
         },
       });
     });
@@ -130,19 +124,13 @@ describe("BodyMassFileParser", () => {
       expect(result.find((r) => r.date === "2025-08-23")).toEqual({
         date: "2025-08-23",
         metrics: {
-          bodyMass: {
-            value: 89.05,
-            unit: "kg",
-          },
+          bodyMass: 89.05,
         },
       });
       expect(result.find((r) => r.date === "2025-08-24")).toEqual({
         date: "2025-08-24",
         metrics: {
-          bodyMass: {
-            value: 89.45,
-            unit: "kg",
-          },
+          bodyMass: 89.45,
         },
       });
     });
@@ -187,7 +175,7 @@ describe("BodyMassFileParser", () => {
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(1);
-      expect((result[0].metrics.bodyMass as any).value).toBe(89.25);
+      expect(result[0].metrics.bodyMass).toBe(89.25);
     });
 
     test("rounds values to two decimal places", () => {
@@ -212,7 +200,7 @@ describe("BodyMassFileParser", () => {
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(1);
-      expect((result[0].metrics.bodyMass as any).value).toBe(89.33);
+      expect(result[0].metrics.bodyMass).toBe(89.33);
     });
 
     test("handles precise decimal values from real data", () => {
@@ -237,7 +225,7 @@ describe("BodyMassFileParser", () => {
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(1);
-      expect((result[0].metrics.bodyMass as any).value).toBe(88.55);
+      expect(result[0].metrics.bodyMass).toBe(88.55);
     });
 
     test("handles whole number values", () => {
@@ -262,7 +250,7 @@ describe("BodyMassFileParser", () => {
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(1);
-      expect((result[0].metrics.bodyMass as any).value).toBe(89);
+      expect(result[0].metrics.bodyMass).toBe(89);
     });
 
     test("handles empty records array", () => {

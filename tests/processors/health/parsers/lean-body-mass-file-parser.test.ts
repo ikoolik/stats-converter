@@ -34,10 +34,7 @@ describe("LeanBodyMassFileParser", () => {
       expect(result[0]).toEqual({
         date: "2025-08-23",
         metrics: {
-          leanBodyMass: {
-            value: 65.6,
-            unit: "kg",
-          },
+          leanBodyMass: 65.6,
         },
       });
     });
@@ -82,10 +79,7 @@ describe("LeanBodyMassFileParser", () => {
       expect(result[0]).toEqual({
         date: "2025-08-23",
         metrics: {
-          leanBodyMass: {
-            value: 65.8,
-            unit: "kg",
-          },
+          leanBodyMass: 65.8,
         },
       });
     });
@@ -130,19 +124,13 @@ describe("LeanBodyMassFileParser", () => {
       expect(result.find((r) => r.date === "2025-08-23")).toEqual({
         date: "2025-08-23",
         metrics: {
-          leanBodyMass: {
-            value: 65.6,
-            unit: "kg",
-          },
+          leanBodyMass: 65.6,
         },
       });
       expect(result.find((r) => r.date === "2025-08-24")).toEqual({
         date: "2025-08-24",
         metrics: {
-          leanBodyMass: {
-            value: 65.8,
-            unit: "kg",
-          },
+          leanBodyMass: 65.8,
         },
       });
     });
@@ -187,7 +175,7 @@ describe("LeanBodyMassFileParser", () => {
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(1);
-      expect((result[0].metrics.leanBodyMass as any).value).toBe(65.6);
+      expect(result[0].metrics.leanBodyMass).toBe(65.6);
     });
 
     test("rounds values to two decimal places", () => {
@@ -212,7 +200,7 @@ describe("LeanBodyMassFileParser", () => {
       const result = parser.parseFile(records);
 
       expect(result).toHaveLength(1);
-      expect((result[0].metrics.leanBodyMass as any).value).toBe(65.67);
+      expect(result[0].metrics.leanBodyMass).toBe(65.67);
     });
 
     test("handles empty records array", () => {

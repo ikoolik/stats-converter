@@ -1,10 +1,5 @@
 import { DailyMetrics } from "../../types";
 
-interface ExerciseSet {
-  reps: number;
-  weight: number;
-}
-
 interface ExerciseDetail {
   totalSets: number;
   totalVolume: number;
@@ -27,8 +22,8 @@ export function calculateTrainingSummary(
   // Process each day's exercises
   dailyMetrics.forEach((day) => {
     if (day.exercises && Array.isArray(day.exercises)) {
-      day.exercises.forEach((exercise: unknown) => {
-        const exerciseName = (exercise as { name: string }).name;
+      day.exercises.forEach((exercise) => {
+        const exerciseName = exercise.name;
 
         // Initialize exercise detail if it doesn't exist
         if (!exerciseSummaries[exerciseName]) {
@@ -39,15 +34,16 @@ export function calculateTrainingSummary(
         }
 
         // Process sets for this exercise
-        const exerciseSets = (exercise as { sets?: ExerciseSet[] }).sets;
+        const exerciseSets = exercise.sets;
         if (exerciseSets && Array.isArray(exerciseSets)) {
           exerciseSummaries[exerciseName].totalSets += exerciseSets.length;
+          const multiplier = exercise.weightType === "dumbbell weight" ? 2 : 1;
 
           // Calculate total volume (reps × weight for each set)
           exerciseSets.forEach((set) => {
             if (set.reps && set.weight) {
               exerciseSummaries[exerciseName].totalVolume +=
-                set.reps * set.weight;
+                set.reps * set.weight * multiplier;
             }
           });
         }

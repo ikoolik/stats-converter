@@ -14,7 +14,6 @@ export class StepCountFileParser extends BaseFileParser {
       if (record.sourceName !== "Zepp Life") continue;
 
       const startDate = record.fields[5];
-      const unit = record.fields[7];
       const value = record.fields[8].replace(/\r?\n/g, "").trim();
       const dateKey = ParserUtils.extractDate(startDate);
 
@@ -25,10 +24,9 @@ export class StepCountFileParser extends BaseFileParser {
         };
       }
 
-      dailyMetrics[dateKey].metrics.stepCount = {
-        value: ParserUtils.roundToTwoDecimals(parseFloat(value)),
-        unit,
-      };
+      dailyMetrics[dateKey].metrics.stepCount = ParserUtils.roundToTwoDecimals(
+        parseFloat(value),
+      );
     }
 
     return Object.values(dailyMetrics);

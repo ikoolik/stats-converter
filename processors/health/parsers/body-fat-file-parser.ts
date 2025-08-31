@@ -24,10 +24,7 @@ export class BodyFatFileParser extends BaseFileParser {
         parseFloat(value) * 100,
       );
 
-      dailyMetrics[dateKey].metrics.bodyFatPercentage = {
-        value: percentageValue,
-        unit: "%",
-      };
+      dailyMetrics[dateKey].metrics.bodyFatPercentage = percentageValue;
     }
 
     return Object.values(dailyMetrics);
