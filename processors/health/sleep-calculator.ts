@@ -71,6 +71,11 @@ export class SleepCalculator {
       sleepMetrics.asleepDeep +
       sleepMetrics.asleepREM;
 
+    // Only return sleep metrics if there's actual sleep data
+    if (totalSleep === 0) {
+      return null;
+    }
+
     return {
       Core: this.formatTimeFromMinutes(Math.round(sleepMetrics.asleepCore)),
       Deep: this.formatTimeFromMinutes(Math.round(sleepMetrics.asleepDeep)),
