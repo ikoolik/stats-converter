@@ -3,6 +3,7 @@ import { DailyMetrics } from "../../types";
 interface ExerciseDetail {
   totalSets: number;
   totalVolume: number;
+  weights: number[];
 }
 
 interface TrainingSummary extends Record<string, unknown> {
@@ -30,6 +31,7 @@ export function calculateTrainingSummary(
           exerciseSummaries[exerciseName] = {
             totalSets: 0,
             totalVolume: 0,
+            weights: [],
           };
         }
 
@@ -39,16 +41,28 @@ export function calculateTrainingSummary(
           exerciseSummaries[exerciseName].totalSets += exerciseSets.length;
           const multiplier = exercise.weightType === "dumbbell weight" ? 2 : 1;
 
-          // Calculate total volume (reps × weight for each set)
+          // Calculate total volume (reps × weight for each set) and collect weights
           exerciseSets.forEach((set) => {
             if (set.reps && set.weight) {
               exerciseSummaries[exerciseName].totalVolume +=
                 set.reps * set.weight * multiplier;
+
+              // Add unique weights to the array
+              if (
+                !exerciseSummaries[exerciseName].weights.includes(set.weight)
+              ) {
+                exerciseSummaries[exerciseName].weights.push(set.weight);
+              }
             }
           });
         }
       });
     }
+  });
+
+  // Sort weights arrays for consistency
+  Object.values(exerciseSummaries).forEach((exercise) => {
+    exercise.weights.sort((a, b) => a - b);
   });
 
   return {

@@ -37,6 +37,7 @@ describe("Training Summary Calculation", () => {
         "Bench Press": {
           totalSets: 3,
           totalVolume: 10 * 100 + 8 * 110 + 6 * 120, // 1000 + 880 + 720 = 2600
+          weights: [100, 110, 120],
         },
       },
     });
@@ -82,6 +83,7 @@ describe("Training Summary Calculation", () => {
         Squats: {
           totalSets: 5, // 2 + 3
           totalVolume: 12 * 80 + 10 * 90 + (12 * 85 + 10 * 95 + 8 * 100), // 1860 + 2320 = 4180
+          weights: [80, 85, 90, 95, 100],
         },
       },
     });
@@ -112,6 +114,7 @@ describe("Training Summary Calculation", () => {
         "Dumbbell Curls": {
           totalSets: 2,
           totalVolume: (10 * 15 + 8 * 15) * 2, // (150 + 120) * 2 = 540
+          weights: [15],
         },
       },
     });
@@ -150,10 +153,12 @@ describe("Training Summary Calculation", () => {
         "Dumbbell Press": {
           totalSets: 2,
           totalVolume: (10 * 20 + 8 * 20) * 2, // (200 + 160) * 2 = 720
+          weights: [20],
         },
         "Barbell Rows": {
           totalSets: 2,
           totalVolume: 12 * 60 + 10 * 65, // 720 + 650 = 1370
+          weights: [60, 65],
         },
       },
     });
@@ -186,6 +191,7 @@ describe("Training Summary Calculation", () => {
         "Push-ups": {
           totalSets: 1,
           totalVolume: 0,
+          weights: [],
         },
       },
     });
@@ -213,6 +219,7 @@ describe("Training Summary Calculation", () => {
         "Test Exercise": {
           totalSets: 0,
           totalVolume: 0,
+          weights: [],
         },
       },
     });
@@ -245,6 +252,7 @@ describe("Training Summary Calculation", () => {
         Deadlift: {
           totalSets: 1,
           totalVolume: 750,
+          weights: [150],
         },
       },
     });
@@ -309,14 +317,17 @@ describe("Training Summary Calculation", () => {
         "Bench Press": {
           totalSets: 5, // 3 + 2
           totalVolume: 10 * 100 + 8 * 110 + 6 * 120 + (10 * 105 + 8 * 115), // 2600 + 1970 = 4570
+          weights: [100, 105, 110, 115, 120],
         },
         "Dumbbell Shoulder Press": {
           totalSets: 2,
           totalVolume: (12 * 25 + 10 * 25) * 2, // (300 + 250) * 2 = 1100
+          weights: [25],
         },
         "Barbell Rows": {
           totalSets: 3,
           totalVolume: 12 * 80 + 10 * 85 + 8 * 90, // 960 + 850 + 720 = 2530
+          weights: [80, 85, 90],
         },
       },
     });
